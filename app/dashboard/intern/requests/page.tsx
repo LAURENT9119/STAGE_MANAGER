@@ -232,7 +232,7 @@ export default function RequestsPage() {
                     <Select 
                       value={requestType} 
                       onValueChange={(value) => setRequestType(value as RequestType)}
-                      className="col-span-3"
+      
                     >
                       <SelectTrigger id="requestType">
                         <SelectValue placeholder="Sélectionnez un type de demande" />
