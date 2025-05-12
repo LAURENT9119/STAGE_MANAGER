@@ -1,557 +1,572 @@
-"use client";
-
-import { useState } from "react";
-import { MainNav } from "@/components/layout/main-nav";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger, 
-  DialogFooter 
-} from "@/components/ui/dialog";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import {
-  AlertCircle,
-  CalendarIcon,
-  FileText,
-  Filter,
-  Plus,
-  Search
+  Clipboard, 
+  GraduationCap, 
+  ClipboardCheck, 
+  FileText, 
+  CalendarCheck, 
+  Users,
+  AlertTriangle
 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
 
-type RequestType = 
-  | "convention"
-  | "prolongation"
-  | "conge"
-  | "changementTuteur"
-  | "attestation";
+import { MOCK_USERS, UserRole } from "@/lib/utils";
+import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { MainNav } from "@/components/layout/main-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { UserWelcome } from "@/components/dashboard/user-welcome";
+import { CardStats } from "@/components/ui/card-stats";
 
-type RequestStatus = 
-  | "en_attente"
-  | "en_cours"
-  | "validee"
-  | "refusee";
+export const metadata: Metadata = {
+  title: "Tableau de bord | Stage+",
+  description: "Tableau de bord de gestion des stagiaires",
+};
 
-interface Request {
-  id: string;
-  type: RequestType;
-  title: string;
-  status: RequestStatus;
-  date: Date;
-  details: string;
+// This is required for static site generation with dynamic routes
+export async function generateStaticParams() {
+  return [
+    { role: 'intern' },
+    { role: 'tutor' },
+    { role: 'hr' },
+    { role: 'finance' },
+    { role: 'admin' }
+  ];
 }
 
-const requestTypeLabels: Record<RequestType, string> = {
-  convention: "Convention de stage",
-  prolongation: "Prolongation de stage",
-  conge: "Demande de congé",
-  changementTuteur: "Changement de tuteur",
-  attestation: "Attestation de stage"
-};
-
-const requestStatusLabels: Record<RequestStatus, string> = {
-  en_attente: "En attente",
-  en_cours: "En cours",
-  validee: "Validée",
-  refusee: "Refusée"
-};
-
-// Sample data for demonstration
-const mockRequests: Request[] = [
-  {
-    id: "req-001",
-    type: "convention",
-    title: "Convention de stage initiale",
-    status: "validee",
-    date: new Date(2025, 3, 15),
-    details: "Convention pour stage de 3 mois au service IT"
-  },
-  {
-    id: "req-002",
-    type: "conge",
-    title: "Congé pour examen universitaire",
-    status: "validee",
-    date: new Date(2025, 4, 2),
-    details: "2 jours de congé pour passer des examens"
-  },
-  {
-    id: "req-003",
-    type: "prolongation",
-    title: "Prolongation de stage de 1 mois",
-    status: "en_cours",
-    date: new Date(2025, 4, 20),
-    details: "Demande de prolongation pour finaliser le projet en cours"
-  },
-  {
-    id: "req-004",
-    type: "attestation",
-    title: "Attestation de stage mi-parcours",
-    status: "en_attente",
-    date: new Date(2025, 4, 25),
-    details: "Attestation requise pour l'université"
+export default function DashboardPage({ params }: { params: { role: string } }) {
+  const role = params.role as UserRole;
+  
+  // Validate that the role is valid
+  if (!["intern", "tutor", "hr", "finance", "admin"].includes(role)) {
+    return notFound();
   }
-];
-
-export default function RequestsPage() {
-  const { toast } = useToast();
-  const [requests, setRequests] = useState<Request[]>(mockRequests);
-  const [newRequestOpen, setNewRequestOpen] = useState(false);
-  const [requestTypeFilter, setRequestTypeFilter] = useState<RequestType | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
-  const [searchTerm, setSearchTerm] = useState("");
   
-  // New request form state
-  const [requestType, setRequestType] = useState<RequestType | "">("");
-  const [requestTitle, setRequestTitle] = useState("");
-  const [requestDetails, setRequestDetails] = useState("");
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
+  // Mock user data based on role
+  const mockEmail = `${role}@example.com`;
+  const user = MOCK_USERS[mockEmail];
   
-  const filteredRequests = requests.filter(request => {
-    const matchesType = requestTypeFilter === "all" || request.type === requestTypeFilter;
-    const matchesStatus = statusFilter === "all" || request.status === statusFilter;
-    const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          request.details.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesType && matchesStatus && matchesSearch;
-  });
+  if (!user) {
+    return notFound();
+  }
   
-  const handleNewRequest = () => {
-    if (!requestType || !requestTitle || !requestDetails) {
-      toast({
-        title: "Formulaire incomplet",
-        description: "Veuillez remplir tous les champs requis.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Additional validation for specific request types
-    if ((requestType === "conge" || requestType === "prolongation") && (!startDate || !endDate)) {
-      toast({
-        title: "Dates requises",
-        description: "Veuillez sélectionner les dates de début et de fin.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const newRequest: Request = {
-      id: `req-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      type: requestType,
-      title: requestTitle,
-      status: "en_attente",
-      date: new Date(),
-      details: requestDetails + (startDate && endDate ? 
-        ` (Du ${formatDate(startDate)} au ${formatDate(endDate)})` : "")
-    };
-    
-    setRequests([newRequest, ...requests]);
-    setNewRequestOpen(false);
-    resetForm();
-    
-    toast({
-      title: "Demande créée avec succès",
-      description: "Votre demande a été soumise et est en attente de validation.",
-    });
-  };
-  
-  const resetForm = () => {
-    setRequestType("");
-    setRequestTitle("");
-    setRequestDetails("");
-    setStartDate(undefined);
-    setEndDate(undefined);
-  };
+  // Role-specific dashboard content
+  const dashboardContent = getDashboardContent(role);
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
-          <MainNav role="intern" />
+          <MainNav role={role} />
         </div>
       </header>
       <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
         <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r">
-          <DashboardNav role="intern" />
+          <DashboardNav role={role} />
         </aside>
         <main className="flex w-full flex-col overflow-hidden py-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold tracking-tight">Mes Demandes</h1>
-            <Dialog open={newRequestOpen} onOpenChange={setNewRequestOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nouvelle demande
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Nouvelle demande</DialogTitle>
-                  <DialogDescription>
-                    Créez une nouvelle demande en remplissant les informations ci-dessous.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="requestType" className="text-right">
-                      Type
-                    </Label>
-                    <Select 
-                      value={requestType} 
-                      onValueChange={(value) => setRequestType(value as RequestType)}
-                      className="col-span-3"
-                    >
-                      <SelectTrigger id="requestType">
-                        <SelectValue placeholder="Sélectionnez un type de demande" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(requestTypeLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="requestTitle" className="text-right">
-                      Titre
-                    </Label>
-                    <Input
-                      id="requestTitle"
-                      value={requestTitle}
-                      onChange={(e) => setRequestTitle(e.target.value)}
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="requestDetails" className="text-right">
-                      Détails
-                    </Label>
-                    <Textarea
-                      id="requestDetails"
-                      value={requestDetails}
-                      onChange={(e) => setRequestDetails(e.target.value)}
-                      className="col-span-3"
-                      rows={4}
-                    />
-                  </div>
-                  
-                  {(requestType === "conge" || requestType === "prolongation") && (
-                    <>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">
-                          Date de début
-                        </Label>
-                        <div className="col-span-3">
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !startDate && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {startDate ? formatDate(startDate) : "Sélectionner une date"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={startDate}
-                                onSelect={setStartDate}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
+          <UserWelcome user={user} />
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {dashboardContent.stats.map((stat, index) => (
+              <CardStats
+                key={index}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                trend={stat.trend}
+                description={stat.description}
+              />
+            ))}
+          </div>
+          
+          <div className="mt-8">
+            <h3 className="text-lg font-medium mb-4">Activité récente</h3>
+            {dashboardContent.activities.length > 0 ? (
+              <div className="rounded-md border">
+                <div className="relative w-full overflow-auto">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead>
+                      <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                        <th className="h-12 px-4 text-left align-middle font-medium">Date</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Type</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Statut</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Détails</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboardContent.activities.map((activity, index) => (
+                        <tr 
+                          key={index} 
+                          className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                        >
+                          <td className="p-4 align-middle">{activity.date}</td>
+                          <td className="p-4 align-middle">{activity.type}</td>
+                          <td className="p-4 align-middle">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusClass(activity.status)}`}>
+                              {activity.status}
+                            </span>
+                          </td>
+                          <td className="p-4 align-middle">{activity.details}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center rounded-md border p-8">
+                <div className="flex flex-col items-center text-center">
+                  <AlertTriangle className="h-10 w-10 text-muted-foreground mb-2" />
+                  <h3 className="text-lg font-medium">Aucune activité récente</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Il n&apos;y a pas d&apos;activité récente à afficher pour le moment.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {dashboardContent.alerts && dashboardContent.alerts.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Alertes</h3>
+              <div className="space-y-4">
+                {dashboardContent.alerts.map((alert, index) => (
+                  <div key={index} className={`p-4 rounded-md ${getAlertClass(alert.type)}`}>
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <AlertTriangle className="h-5 w-5" />
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label className="text-right">
-                          Date de fin
-                        </Label>
-                        <div className="col-span-3">
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !endDate && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {endDate ? formatDate(endDate) : "Sélectionner une date"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={endDate}
-                                onSelect={setEndDate}
-                                initialFocus
-                                disabled={(date) => 
-                                  startDate ? date < startDate : false
-                                }
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  
-                  {requestType === "convention" && (
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <div className="col-span-1"></div>
-                      <div className="col-span-3 flex items-center p-4 text-sm text-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300">
-                        <AlertCircle className="h-4 w-4 mr-2" />
-                        <p>N'oubliez pas de télécharger votre convention signée par l'école dans la section Documents.</p>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium">{alert.title}</h3>
+                        <p className="mt-2 text-sm">{alert.message}</p>
                       </div>
                     </div>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setNewRequestOpen(false)}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleNewRequest}>Soumettre la demande</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="relative w-full md:w-80">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher une demande..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Select value={requestTypeFilter} onValueChange={(v) => setRequestTypeFilter(v as any)}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les types</SelectItem>
-                  {Object.entries(requestTypeLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  {Object.entries(requestStatusLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">Toutes</TabsTrigger>
-              <TabsTrigger value="en_attente">En attente</TabsTrigger>
-              <TabsTrigger value="en_cours">En cours</TabsTrigger>
-              <TabsTrigger value="validee">Validées</TabsTrigger>
-              <TabsTrigger value="refusee">Refusées</TabsTrigger>
-            </TabsList>
-            
-            {["all", "en_attente", "en_cours", "validee", "refusee"].map((tab) => (
-              <TabsContent key={tab} value={tab} className="w-full">
-                {filteredRequests.filter(req => tab === "all" || req.status === tab).length > 0 ? (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Titre</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredRequests
-                          .filter(req => tab === "all" || req.status === tab)
-                          .map((request) => (
-                            <TableRow key={request.id}>
-                              <TableCell className="font-medium">{request.title}</TableCell>
-                              <TableCell>{requestTypeLabels[request.type]}</TableCell>
-                              <TableCell>{formatDate(request.date)}</TableCell>
-                              <TableCell>
-                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                  request.status === "en_attente" 
-                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                                    : request.status === "en_cours" 
-                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                    : request.status === "validee" 
-                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                                }`}>
-                                  {requestStatusLabels[request.status]}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <FileText className="h-4 w-4 mr-2" />
-                                      Détails
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>{request.title}</DialogTitle>
-                                      <DialogDescription>
-                                        {requestTypeLabels[request.type]} - {formatDate(request.date)}
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4">
-                                      <div className="mb-4">
-                                        <p className="text-sm font-medium mb-1">Statut</p>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                          request.status === "en_attente" 
-                                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                                            : request.status === "en_cours" 
-                                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                                            : request.status === "validee" 
-                                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                                        }`}>
-                                          {requestStatusLabels[request.status]}
-                                        </span>
-                                      </div>
-                                      <div className="mb-4">
-                                        <p className="text-sm font-medium mb-1">Détails</p>
-                                        <p className="text-sm">{request.details}</p>
-                                      </div>
-                                      
-                                      {request.status === "en_attente" && (
-                                        <div className="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300">
-                                          <AlertCircle className="h-4 w-4 mr-2" />
-                                          <p>Votre demande est en attente d'approbation par votre tuteur.</p>
-                                        </div>
-                                      )}
-                                      
-                                      {request.status === "en_cours" && (
-                                        <div className="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300">
-                                          <AlertCircle className="h-4 w-4 mr-2" />
-                                          <p>Votre demande est en cours de traitement par les Ressources Humaines.</p>
-                                        </div>
-                                      )}
-                                      
-                                      {request.status === "validee" && (
-                                        <div className="flex items-center p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-green-900/30 dark:text-green-300">
-                                          <AlertCircle className="h-4 w-4 mr-2" />
-                                          <p>Votre demande a été approuvée. Vous pouvez télécharger les documents associés dans la section Documents.</p>
-                                        </div>
-                                      )}
-                                      
-                                      {request.status === "refusee" && (
-                                        <div className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-900/30 dark:text-red-300">
-                                          <AlertCircle className="h-4 w-4 mr-2" />
-                                          <p>Votre demande a été refusée. Veuillez contacter votre tuteur pour plus d'informations.</p>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <DialogFooter>
-                                      {request.status === "en_attente" && (
-                                        <Button 
-                                          variant="destructive"
-                                          onClick={() => {
-                                            setRequests(requests.filter(r => r.id !== request.id));
-                                            toast({
-                                              title: "Demande annulée",
-                                              description: "Votre demande a été annulée avec succès."
-                                            });
-                                          }}
-                                        >
-                                          Annuler la demande
-                                        </Button>
-                                      )}
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <FileText className="h-10 w-10 text-muted-foreground mb-2" />
-                    <h3 className="text-lg font-medium">Aucune demande trouvée</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Vous n&apos;avez pas encore de demande {tab !== "all" && `avec le statut "${requestStatusLabels[tab as RequestStatus]}"`} ou correspondant aux filtres actuels.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setRequestTypeFilter("all");
-                        setStatusFilter("all");
-                        setSearchTerm("");
-                      }}
-                    >
-                      Réinitialiser les filtres
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
+          )}
         </main>
       </div>
       <SiteFooter />
     </div>
   );
+}
+
+function getStatusClass(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'en attente':
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+    case 'validé':
+    case 'validée':
+    case 'complété':
+    case 'complétée':
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+    case 'refusé':
+    case 'refusée':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+    case 'en cours':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+  }
+}
+
+function getAlertClass(type: string): string {
+  switch (type.toLowerCase()) {
+    case 'warning':
+      return 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+    case 'success':
+      return 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+    case 'error':
+      return 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+    case 'info':
+      return 'bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+    default:
+      return 'bg-gray-50 text-gray-800 dark:bg-gray-800/50 dark:text-gray-300';
+  }
+}
+
+interface DashboardContent {
+  stats: {
+    title: string;
+    value: string | number;
+    icon?: any;
+    trend?: {
+      value: number;
+      isPositive: boolean;
+    };
+    description?: string;
+  }[];
+  activities: {
+    date: string;
+    type: string;
+    status: string;
+    details: string;
+  }[];
+  alerts?: {
+    type: string;
+    title: string;
+    message: string;
+  }[];
+}
+
+function getDashboardContent(role: UserRole): DashboardContent {
+  switch (role) {
+    case 'intern':
+      return {
+        stats: [
+          { 
+            title: "Demandes en cours", 
+            value: 2, 
+            icon: Clipboard,
+            description: "Demandes en attente de validation"
+          },
+          { 
+            title: "Demandes validées", 
+            value: 5, 
+            icon: ClipboardCheck,
+            description: "Demandes approuvées"
+          },
+          { 
+            title: "Documents", 
+            value: 8, 
+            icon: FileText,
+            description: "Documents disponibles"
+          },
+          { 
+            title: "Jours restants", 
+            value: 45, 
+            icon: CalendarCheck,
+            description: "Jours restants de stage"
+          },
+        ],
+        activities: [
+          {
+            date: "06/05/2025",
+            type: "Demande de congé",
+            status: "En attente",
+            details: "2 jours - 15-16 mai 2025"
+          },
+          {
+            date: "01/05/2025",
+            type: "Évaluation mi-parcours",
+            status: "Complétée",
+            details: "Soumise par Marie Laurent"
+          },
+          {
+            date: "28/04/2025",
+            type: "Demande de prolongation",
+            status: "Validée",
+            details: "Prolongation de 2 semaines"
+          },
+          {
+            date: "15/04/2025",
+            type: "Convention",
+            status: "Validée",
+            details: "Convention signée par toutes les parties"
+          },
+        ],
+        alerts: [
+          {
+            type: "warning",
+            title: "Évaluation finale à compléter",
+            message: "L'évaluation finale de votre stage doit être complétée avant le 30/05/2025."
+          }
+        ]
+      };
+    
+    case 'tutor':
+      return {
+        stats: [
+          { 
+            title: "Stagiaires actifs", 
+            value: 5, 
+            icon: GraduationCap,
+            description: "Stagiaires sous votre supervision"
+          },
+          { 
+            title: "Demandes à valider", 
+            value: 3, 
+            icon: Clipboard,
+            description: "Demandes en attente de votre validation"
+          },
+          { 
+            title: "Évaluations à faire", 
+            value: 2, 
+            icon: ClipboardCheck,
+            description: "Évaluations en attente"
+          },
+          { 
+            title: "Conventions", 
+            value: 7, 
+            icon: FileText,
+            description: "Conventions actives"
+          },
+        ],
+        activities: [
+          {
+            date: "06/05/2025",
+            type: "Demande de congé",
+            status: "En attente",
+            details: "Jean Dupont - 2 jours (15-16 mai)"
+          },
+          {
+            date: "05/05/2025",
+            type: "Demande de prolongation",
+            status: "En attente",
+            details: "Lucie Martin - 3 semaines"
+          },
+          {
+            date: "03/05/2025",
+            type: "Évaluation à mi-parcours",
+            status: "Complétée",
+            details: "Alex Petit - Excellente progression"
+          },
+          {
+            date: "02/05/2025",
+            type: "Nouvelle convention",
+            status: "Validée",
+            details: "Thomas Dubois - Stage de 3 mois"
+          },
+        ],
+        alerts: [
+          {
+            type: "warning",
+            title: "Évaluations en retard",
+            message: "2 évaluations n'ont pas été complétées dans les délais prévus."
+          },
+          {
+            type: "info",
+            title: "Nouveaux stagiaires",
+            message: "Un nouveau stagiaire rejoindra votre équipe le 15/05/2025."
+          }
+        ]
+      };
+    
+    case 'hr':
+      return {
+        stats: [
+          { 
+            title: "Stagiaires actifs", 
+            value: 24, 
+            icon: GraduationCap,
+            trend: {
+              value: 12,
+              isPositive: true
+            },
+            description: "Total des stagiaires actifs"
+          },
+          { 
+            title: "Demandes en cours", 
+            value: 8, 
+            icon: Clipboard,
+            description: "Demandes nécessitant une action"
+          },
+          { 
+            title: "Conventions ce mois", 
+            value: 7, 
+            icon: FileText,
+            trend: {
+              value: 4,
+              isPositive: true
+            },
+            description: "Nouvelles conventions ce mois"
+          },
+          { 
+            title: "Évaluations", 
+            value: "92%", 
+            icon: ClipboardCheck,
+            description: "Taux de complétion des évaluations"
+          },
+        ],
+        activities: [
+          {
+            date: "06/05/2025",
+            type: "Convention",
+            status: "En attente",
+            details: "Emma Bernard - Service Marketing"
+          },
+          {
+            date: "05/05/2025",
+            type: "Prolongation",
+            status: "Validée",
+            details: "Jean Dupont - Service IT"
+          },
+          {
+            date: "04/05/2025",
+            type: "Fin de stage",
+            status: "Complétée",
+            details: "Sophie Martin - Service Juridique"
+          },
+          {
+            date: "03/05/2025",
+            type: "Nouvelle demande",
+            status: "En cours",
+            details: "Lucas Petit - Service Communication"
+          },
+        ],
+        alerts: [
+          {
+            type: "warning",
+            title: "Conventions à signer",
+            message: "3 conventions nécessitent votre signature avant le 10/05/2025."
+          },
+          {
+            type: "info",
+            title: "Campagne de recrutement",
+            message: "La campagne de recrutement des stagiaires d'été commence le 15/05/2025."
+          }
+        ]
+      };
+    
+    case 'finance':
+      return {
+        stats: [
+          { 
+            title: "Gratifications", 
+            value: "26 450 €", 
+            icon: FileText,
+            trend: {
+              value: 5,
+              isPositive: false
+            },
+            description: "Total des gratifications ce mois"
+          },
+          { 
+            title: "Conventions à traiter", 
+            value: 5, 
+            icon: Clipboard,
+            description: "Conventions en attente de validation"
+          },
+          { 
+            title: "Budget stage", 
+            value: "68%", 
+            icon: GraduationCap,
+            description: "Budget annuel consommé"
+          },
+          { 
+            title: "Paiements en attente", 
+            value: 3, 
+            icon: AlertTriangle,
+            description: "Paiements à traiter"
+          },
+        ],
+        activities: [
+          {
+            date: "06/05/2025",
+            type: "Gratification",
+            status: "En cours",
+            details: "Traitement du lot de mai - 22 stagiaires"
+          },
+          {
+            date: "05/05/2025",
+            type: "Convention",
+            status: "Validée",
+            details: "Thomas Dubois - Gratification 800€/mois"
+          },
+          {
+            date: "03/05/2025",
+            type: "Budget",
+            status: "Complété",
+            details: "Mise à jour du budget stages 2025"
+          },
+          {
+            date: "01/05/2025",
+            type: "Paiement",
+            status: "Validé",
+            details: "Régularisation gratification avril"
+          },
+        ],
+        alerts: [
+          {
+            type: "warning",
+            title: "Fin d'année fiscale",
+            message: "Préparation des rapports de fin d'année fiscale à prévoir pour le 30/05/2025."
+          }
+        ]
+      };
+    
+    case 'admin':
+      return {
+        stats: [
+          { 
+            title: "Utilisateurs", 
+            value: 87, 
+            icon: Users,
+            trend: {
+              value: 12,
+              isPositive: true
+            },
+            description: "Utilisateurs actifs"
+          },
+          { 
+            title: "Stagiaires", 
+            value: 24, 
+            icon: GraduationCap,
+            description: "Stagiaires actifs"
+          },
+          { 
+            title: "Tuteurs", 
+            value: 18, 
+            icon: Users,
+            description: "Tuteurs actifs"
+          },
+          { 
+            title: "Demandes", 
+            value: 156, 
+            icon: Clipboard,
+            trend: {
+              value: 23,
+              isPositive: true
+            },
+            description: "Demandes ce mois"
+          },
+        ],
+        activities: [
+          {
+            date: "06/05/2025",
+            type: "Nouvel utilisateur",
+            status: "Complété",
+            details: "Création compte RH - Sophie Dubois"
+          },
+          {
+            date: "05/05/2025",
+            type: "Mise à jour système",
+            status: "Complétée",
+            details: "Mise à jour des modèles de documents"
+          },
+          {
+            date: "04/05/2025",
+            type: "Backup",
+            status: "Complété",
+            details: "Sauvegarde mensuelle des données"
+          },
+          {
+            date: "01/05/2025",
+            type: "Maintenance",
+            status: "Complétée",
+            details: "Maintenance planifiée du système"
+          },
+        ],
+        alerts: [
+          {
+            type: "warning",
+            title: "Mises à jour requises",
+            message: "Des mises à jour de sécurité sont disponibles pour 2 modules."
+          },
+          {
+            type: "info",
+            title: "Nouveaux modèles",
+            message: "Les nouveaux modèles de convention sont prêts à être déployés."
+          }
+        ]
+      };
+    
+    default:
+      return {
+        stats: [],
+        activities: []
+      };
+  }
 }
