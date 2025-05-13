@@ -13,6 +13,13 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { dev, isServer }) => {
+    config.cache = false;
+    if (dev && !isServer) {
+      config.devtool = 'eval-source-map';
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
