@@ -1,6 +1,7 @@
+
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DivideIcon as LucideIcon } from "lucide-react";
+import { DivideIcon, LucideIcon } from "lucide-react";
 
 interface CardStatsProps {
   title: string;

@@ -6,6 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
 
+export const revalidate = 3600; // Revalidation toutes les heures
+
 export const metadata: Metadata = {
   title: 'Stage+ | Gestion des Stagiaires',
   description: 'Plateforme de gestion des stagiaires avec demandes en ligne',
