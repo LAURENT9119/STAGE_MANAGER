@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { MainNav } from "@/components/layout/main-nav";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -23,86 +23,75 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/string-utils";
-import { Filter, Search, UserPlus } from "lucide-react";
+import { Filter, Search } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface Intern {
   id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  department: string;
-  tutor: string;
-  startDate: string;
-  endDate: string;
+  user: {
+    name: string;
+    email: string;
+    avatar_url: string | null;
+  };
+  department: {
+    name: string;
+  };
+  tutor: {
+    name: string;
+  };
+  start_date: string;
+  end_date: string;
   status: "active" | "completed" | "upcoming";
 }
 
-const mockInterns: Intern[] = [
-  {
-    id: "INT001",
-    name: "Jean Dupont",
-    email: "jean.dupont@example.com",
-    avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-    department: "IT",
-    tutor: "Marie Laurent",
-    startDate: "2025-01-15",
-    endDate: "2025-07-15",
-    status: "active",
-  },
-  {
-    id: "INT002",
-    name: "Sophie Martin",
-    email: "sophie.martin@example.com",
-    avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
-    department: "Marketing",
-    tutor: "Pierre Dubois",
-    startDate: "2025-02-01",
-    endDate: "2025-08-01",
-    status: "active",
-  },
-  {
-    id: "INT003",
-    name: "Lucas Bernard",
-    email: "lucas.bernard@example.com",
-    avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg",
-    department: "Finance",
-    tutor: "Anne Leroy",
-    startDate: "2025-03-01",
-    endDate: "2025-06-01",
-    status: "upcoming",
-  },
-  {
-    id: "INT004",
-    name: "Emma Petit",
-    email: "emma.petit@example.com",
-    avatar: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg",
-    department: "RH",
-    tutor: "Thomas Moreau",
-    startDate: "2024-09-01",
-    endDate: "2025-03-01",
-    status: "completed",
-  },
-];
-
 export default function HRInternsPage() {
-  const [interns, setInterns] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/interns')
-      .then(res => res.json())
-      .then(data => setInterns(data))
-      .catch(err => console.error(err));
-  }, []);
+  const { toast } = useToast();
+  const [interns, setInterns] = useState<Intern[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  useEffect(() => {
+    fetchInterns();
+  }, []);
+
+  async function fetchInterns() {
+    try {
+      const { data, error } = await supabase
+        .from('interns')
+        .select(`
+          id,
+          status,
+          start_date,
+          end_date,
+          user:user_id(name, email, avatar_url),
+          department:department_id(name),
+          tutor:tutor_id(name)
+        `);
+
+      if (error) throw error;
+
+      setInterns(data as unknown as Intern[]);
+    } catch (error) {
+      console.error('Error fetching interns:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger la liste des stagiaires.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const filteredInterns = interns.filter((intern) => {
     const matchesSearch =
-      intern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      intern.email.toLowerCase().includes(searchTerm.toLowerCase());
+      intern.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      intern.user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment =
-      departmentFilter === "all" || intern.department === departmentFilter;
+      departmentFilter === "all" || intern.department.name === departmentFilter;
     const matchesStatus =
       statusFilter === "all" || intern.status === statusFilter;
     return matchesSearch && matchesDepartment && matchesStatus;
@@ -134,6 +123,10 @@ export default function HRInternsPage() {
     }
   };
 
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -147,17 +140,11 @@ export default function HRInternsPage() {
         </aside>
         <main className="flex w-full flex-col overflow-hidden py-6">
           <div className="flex flex-col space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Stagiaires</h2>
-                <p className="text-muted-foreground">
-                  Gérez les stagiaires de l&apos;entreprise
-                </p>
-              </div>
-              <Button>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Nouveau stagiaire
-              </Button>
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Stagiaires</h2>
+              <p className="text-muted-foreground">
+                Gérez les stagiaires de l&apos;entreprise
+              </p>
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -183,10 +170,9 @@ export default function HRInternsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les services</SelectItem>
-                    <SelectItem value="IT">IT</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="RH">RH</SelectItem>
+                    {Array.from(new Set(interns.map(i => i.department.name))).map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
@@ -226,24 +212,24 @@ export default function HRInternsPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={intern.avatar} alt={intern.name} />
+                            <AvatarImage src={intern.user.avatar_url || undefined} alt={intern.user.name} />
                             <AvatarFallback>
-                              {getInitials(intern.name)}
+                              {getInitials(intern.user.name)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{intern.name}</div>
+                            <div className="font-medium">{intern.user.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {intern.email}
+                              {intern.user.email}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{intern.department}</TableCell>
-                      <TableCell>{intern.tutor}</TableCell>
+                      <TableCell>{intern.department.name}</TableCell>
+                      <TableCell>{intern.tutor.name}</TableCell>
                       <TableCell>
-                        {new Date(intern.startDate).toLocaleDateString("fr-FR")} -{" "}
-                        {new Date(intern.endDate).toLocaleDateString("fr-FR")}
+                        {new Date(intern.start_date).toLocaleDateString("fr-FR")} -{" "}
+                        {new Date(intern.end_date).toLocaleDateString("fr-FR")}
                       </TableCell>
                       <TableCell>
                         <span
@@ -259,6 +245,7 @@ export default function HRInternsPage() {
                           Détails
                         </Button>
                       </TableCell>
+                    
                     </TableRow>
                   ))}
                 </TableBody>
