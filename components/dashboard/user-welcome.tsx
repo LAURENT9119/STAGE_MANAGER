@@ -8,6 +8,7 @@ import { getInitials } from "@/lib/string-utils";
 
 export function UserWelcome() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     async function loadUser() {

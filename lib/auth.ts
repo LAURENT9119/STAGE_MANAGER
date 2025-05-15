@@ -4,11 +4,17 @@ import { Database } from './supabase';
 export const supabase = createClientComponentClient<Database>();
 
 export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
-    return null;
-  }
+    if (error) {
+      console.error('Auth error:', error.message);
+      return null;
+    }
+
+    if (!user) {
+      return null;
+    }
 
   const { data: profile } = await supabase
     .from('users')
