@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
@@ -14,6 +13,9 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
     serverMinification: true,
+    fontLoaders: [
+      { loader: 'default', options: { timeout: 15000 } }
+    ],
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons',
