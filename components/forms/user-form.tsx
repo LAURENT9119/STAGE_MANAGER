@@ -1,51 +1,59 @@
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function UserForm() {
-  return (
-    <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" required />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nom</Label>
-        <Input id="name" required />
-      </div>
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-      <div className="grid gap-2">
-        <Label htmlFor="role">Rôle</Label>
-        <Select>
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create user');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" {...register('email', { required: true })} />
+      </div>
+      <div>
+        <Label htmlFor="name">Name</Label>
+        <Input id="name" {...register('name', { required: true })} />
+      </div>
+      <div>
+        <Label htmlFor="role">Role</Label>
+        <Select onValueChange={(value) => register('role').onChange({ target: { value } })}>
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un rôle" />
+            <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="intern">Stagiaire</SelectItem>
-            <SelectItem value="tutor">Tuteur</SelectItem>
-            <SelectItem value="hr">RH</SelectItem>
+            <SelectItem value="intern">Intern</SelectItem>
+            <SelectItem value="tutor">Tutor</SelectItem>
+            <SelectItem value="hr">HR</SelectItem>
             <SelectItem value="finance">Finance</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="department">Département</Label>
-        <Input id="department" />
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="position">Poste</Label>
-        <Input id="position" />
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="phone">Téléphone</Label>
-        <Input id="phone" type="tel" />
-      </div>
-    </div>
+      <Button type="submit" disabled={loading}>
+        {loading ? 'Creating...' : 'Create User'}
+      </Button>
+    </form>
   );
 }

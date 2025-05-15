@@ -1,24 +1,47 @@
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
 
 export function DocumentForm() {
+  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit } = useForm();
+
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create document');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nom du document</Label>
-        <Input id="name" required />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Document Name</Label>
+        <Input id="name" {...register('name', { required: true })} />
       </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="type">Type de document</Label>
-        <Input id="type" required />
+      <div>
+        <Label htmlFor="type">Document Type</Label>
+        <Input id="type" {...register('type', { required: true })} />
       </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="file">Fichier</Label>
-        <Input id="file" type="file" required />
+      <div>
+        <Label htmlFor="url">Document URL</Label>
+        <Input id="url" type="url" {...register('url', { required: true })} />
       </div>
-    </div>
+      <Button type="submit" disabled={loading}>
+        {loading ? 'Creating...' : 'Create Document'}
+      </Button>
+    </form>
   );
 }
