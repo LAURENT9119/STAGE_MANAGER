@@ -1,14 +1,24 @@
+
 "use client";
 
-import { UserProfile } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/string-utils";
 
-interface UserWelcomeProps {
-  user: UserProfile;
-}
+export function UserWelcome() {
+  const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    async function loadUser() {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    }
+    loadUser();
+  }, []);
 
-export function UserWelcome({ user }: UserWelcomeProps) {
+  if (!user) return null;
+
   const now = new Date();
   const hours = now.getHours();
   
@@ -24,7 +34,7 @@ export function UserWelcome({ user }: UserWelcomeProps) {
   return (
     <div className="flex items-center space-x-4 mb-6">
       <Avatar className="h-12 w-12">
-        <AvatarImage src={user.avatar} alt={user.name} />
+        <AvatarImage src={user.avatar_url} alt={user.name} />
         <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
       </Avatar>
       <div>

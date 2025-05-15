@@ -5,7 +5,7 @@ export const supabase = createClientComponentClient<Database>();
 
 export async function getCurrentUser() {
   const { data: { user }, error } = await supabase.auth.getUser();
-  
+
   if (error || !user) {
     return null;
   }
@@ -20,18 +20,22 @@ export async function getCurrentUser() {
 }
 
 export async function getDashboardStats(role: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return null;
+
   switch (role) {
     case 'hr':
-      const { data: interns } = await supabase
+      const { data: activeInterns } = await supabase
         .from('interns')
-        .select('*', { count: 'exact' });
+        .select('*')
+        .eq('status', 'active');
 
-      const { data: requests } = await supabase
+      const { data: pendingRequests } = await supabase
         .from('requests')
         .select('*')
         .eq('status', 'pending');
 
-      const { data: conventions } = await supabase
+      const { data: monthlyConventions } = await supabase
         .from('requests')
         .select('*')
         .eq('type', 'convention')
@@ -41,30 +45,25 @@ export async function getDashboardStats(role: string) {
         .from('evaluations')
         .select('*');
 
-      const totalEvaluations = evaluations?.length || 0;
-      const completedEvaluations = evaluations?.filter(e => e.score !== null).length || 0;
-      const completionRate = totalEvaluations > 0 
-        ? Math.round((completedEvaluations / totalEvaluations) * 100) 
-        : 0;
-
       return {
-        totalInterns: interns?.length || 0,
-        pendingRequests: requests?.length || 0,
-        monthlyConventions: conventions?.length || 0,
-        evaluationRate: completionRate
+        totalInterns: activeInterns?.length || 0,
+        pendingRequests: pendingRequests?.length || 0,
+        monthlyConventions: monthlyConventions?.length || 0,
+        evaluationRate: evaluations?.length ? 
+          Math.round((evaluations.filter(e => e.status === 'completed').length / evaluations.length) * 100) : 0
       };
 
     case 'tutor':
       const { data: tutorInterns } = await supabase
         .from('interns')
         .select('*')
-        .eq('tutor_id', (await getCurrentUser())?.id);
+        .eq('tutor_id', currentUser.id);
 
       const { data: tutorRequests } = await supabase
         .from('requests')
         .select('*')
         .eq('status', 'pending')
-        .in('intern_id', tutorInterns?.map(i => i.id) || []);
+        .eq('tutor_id', currentUser.id);
 
       return {
         activeInterns: tutorInterns?.length || 0,
@@ -74,39 +73,11 @@ export async function getDashboardStats(role: string) {
     case 'finance':
       const { data: payments } = await supabase
         .from('payments')
-        .select('amount');
-
-      const totalAmount = payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
-
-      const { data: pendingPayments } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('status', 'pending');
+        .select('*');
 
       return {
-        totalAmount,
-        pendingPayments: pendingPayments?.length || 0
-      };
-
-    case 'admin':
-      const { data: users } = await supabase
-        .from('users')
-        .select('*', { count: 'exact' });
-
-      const { data: activeInterns } = await supabase
-        .from('interns')
-        .select('*')
-        .eq('status', 'active');
-
-      const { data: tutors } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'tutor');
-
-      return {
-        totalUsers: users?.length || 0,
-        activeInterns: activeInterns?.length || 0,
-        totalTutors: tutors?.length || 0
+        totalAmount: payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
+        pendingPayments: payments?.filter(p => p.status === 'pending').length || 0
       };
 
     default:
@@ -115,8 +86,8 @@ export async function getDashboardStats(role: string) {
 }
 
 export async function getRecentActivity(role: string) {
-  const user = await getCurrentUser();
-  if (!user) return [];
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return [];
 
   let query = supabase
     .from('requests')
@@ -130,9 +101,9 @@ export async function getRecentActivity(role: string) {
     .limit(5);
 
   if (role === 'tutor') {
-    query = query.eq('tutor_id', user.id);
+    query = query.eq('tutor_id', currentUser.id);
   } else if (role === 'intern') {
-    query = query.eq('intern_id', user.id);
+    query = query.eq('intern_id', currentUser.id);
   }
 
   const { data: activities } = await query;
@@ -146,55 +117,34 @@ export async function getRecentActivity(role: string) {
 }
 
 export async function getAlerts(role: string) {
-  const user = await getCurrentUser();
-  if (!user) return [];
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return [];
 
   const alerts = [];
 
   if (role === 'hr') {
-    // Check for expiring conventions
-    const { data: expiringConventions } = await supabase
-      .from('interns')
+    // Conventions à signer
+    const { data: pendingConventions } = await supabase
+      .from('requests')
       .select('*')
-      .lt('end_date', new Date(new Date().setDate(new Date().getDate() + 30)).toISOString())
-      .gt('end_date', new Date().toISOString());
+      .eq('type', 'convention')
+      .eq('status', 'pending');
 
-    if (expiringConventions && expiringConventions.length > 0) {
+    if (pendingConventions && pendingConventions.length > 0) {
       alerts.push({
         type: 'warning',
-        title: 'Conventions à renouveler',
-        message: `${expiringConventions.length} conventions arrivent à échéance dans les 30 prochains jours.`
+        title: 'Conventions à signer',
+        message: `${pendingConventions.length} conventions nécessitent votre signature.`
       });
     }
 
-    // Check for pending evaluations
-    const { data: pendingEvaluations } = await supabase
-      .from('evaluations')
-      .select('*')
-      .is('score', null);
-
-    if (pendingEvaluations && pendingEvaluations.length > 0) {
+    // Campagne de recrutement
+    const today = new Date();
+    if (today.getMonth() === 4 && today.getDate() > 10) { // Mai
       alerts.push({
-        type: 'warning',
-        title: 'Évaluations en retard',
-        message: `${pendingEvaluations.length} évaluations de fin de stage sont en attente.`
-      });
-    }
-  }
-
-  if (role === 'tutor') {
-    // Check for pending evaluations
-    const { data: pendingEvaluations } = await supabase
-      .from('evaluations')
-      .select('*')
-      .eq('tutor_id', user.id)
-      .is('score', null);
-
-    if (pendingEvaluations && pendingEvaluations.length > 0) {
-      alerts.push({
-        type: 'warning',
-        title: 'Évaluations en retard',
-        message: `${pendingEvaluations.length} évaluations n'ont pas été complétées dans les délais prévus.`
+        type: 'info',
+        title: 'Campagne de recrutement',
+        message: 'La campagne de recrutement des stagiaires d\'été commence bientôt.'
       });
     }
   }
