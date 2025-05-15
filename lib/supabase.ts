@@ -76,7 +76,7 @@ export type Database = {
           formation: string;
           start_date: string;
           end_date: string;
-          status: 'active' | 'completed' | 'upcoming';
+          status: 'actif' | 'termine' | 'a_venir';
           created_at: string;
           updated_at: string;
         };
@@ -89,7 +89,7 @@ export type Database = {
           formation: string;
           start_date: string;
           end_date: string;
-          status: 'active' | 'completed' | 'upcoming';
+          status: 'actif' | 'termine' | 'a_venir';
           created_at?: string;
           updated_at?: string;
         };
@@ -102,7 +102,7 @@ export type Database = {
           formation?: string;
           start_date?: string;
           end_date?: string;
-          status?: 'active' | 'completed' | 'upcoming';
+          status?: 'actif' | 'termine' | 'a_venir';
           created_at?: string;
           updated_at?: string;
         };
@@ -114,7 +114,7 @@ export type Database = {
           title: string;
           details: string | null;
           intern_id: string;
-          status: 'pending' | 'processing' | 'approved' | 'rejected';
+          status: 'en_attente' | 'en_cours' | 'validee' | 'refusee';
           start_date: string | null;
           end_date: string | null;
           created_at: string;
@@ -126,7 +126,7 @@ export type Database = {
           title: string;
           details?: string | null;
           intern_id: string;
-          status: 'pending' | 'processing' | 'approved' | 'rejected';
+          status: 'en_attente' | 'en_cours' | 'validee' | 'refusee';
           start_date?: string | null;
           end_date?: string | null;
           created_at?: string;
@@ -138,7 +138,7 @@ export type Database = {
           title?: string;
           details?: string | null;
           intern_id?: string;
-          status?: 'pending' | 'processing' | 'approved' | 'rejected';
+          status?: 'en_attente' | 'en_cours' | 'validee' | 'refusee';
           start_date?: string | null;
           end_date?: string | null;
           created_at?: string;
@@ -179,7 +179,7 @@ export type Database = {
           id: string;
           intern_id: string;
           amount: number;
-          status: 'pending' | 'paid' | 'cancelled';
+          status: 'en_attente' | 'paye' | 'annule';
           period: string;
           created_at: string;
           updated_at: string;
@@ -188,7 +188,7 @@ export type Database = {
           id?: string;
           intern_id: string;
           amount: number;
-          status: 'pending' | 'paid' | 'cancelled';
+          status: 'en_attente' | 'paye' | 'annule';
           period: string;
           created_at?: string;
           updated_at?: string;
@@ -197,7 +197,7 @@ export type Database = {
           id?: string;
           intern_id?: string;
           amount?: number;
-          status?: 'pending' | 'paid' | 'cancelled';
+          status?: 'en_attente' | 'paye' | 'annule';
           period?: string;
           created_at?: string;
           updated_at?: string;
@@ -208,7 +208,7 @@ export type Database = {
           id: string;
           intern_id: string;
           tutor_id: string;
-          type: 'mid_term' | 'final';
+          type: 'mi_parcours' | 'finale';
           score: number;
           comments: string | null;
           created_at: string;
@@ -218,7 +218,7 @@ export type Database = {
           id?: string;
           intern_id: string;
           tutor_id: string;
-          type: 'mid_term' | 'final';
+          type: 'mi_parcours' | 'finale';
           score: number;
           comments?: string | null;
           created_at?: string;
@@ -228,7 +228,7 @@ export type Database = {
           id?: string;
           intern_id?: string;
           tutor_id?: string;
-          type?: 'mid_term' | 'final';
+          type?: 'mi_parcours' | 'finale';
           score?: number;
           comments?: string | null;
           created_at?: string;
