@@ -1,6 +1,6 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removing static export as it conflicts with middleware and server features
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -13,9 +13,6 @@ const nextConfig = {
     optimizeCss: false,
     scrollRestoration: true,
     serverMinification: true,
-    fontLoaders: [
-      { loader: 'default', options: { timeout: 15000 } }
-    ],
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons',
@@ -23,11 +20,6 @@ const nextConfig = {
       '@radix-ui/react-select',
       '@radix-ui/react-dropdown-menu'
     ],
-    turbo: {
-      rules: {
-        '*.svg': ['@svgr/webpack']
-      }
-    },
     serverActions: true,
     optimizeServerReact: true
   },
