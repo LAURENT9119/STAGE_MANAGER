@@ -71,20 +71,20 @@ export function getRoleColor(role: UserRole): string {
   }
 }
 
-export function getRoleName(role: UserRole): string {
+export function getRoleName(role: string): string {
   switch (role) {
-    case 'intern':
+    case 'stagiaire':
       return 'Stagiaire';
-    case 'tutor':
+    case 'tuteur':
       return 'Tuteur';
-    case 'hr':
+    case 'RH':
       return 'Ressources Humaines';
     case 'finance':
       return 'Finance';
-    case 'admin':
+    case 'administrateur':
       return 'Administrateur';
     default:
-      return 'Utilisateur';
+      return role;
   }
 }
 

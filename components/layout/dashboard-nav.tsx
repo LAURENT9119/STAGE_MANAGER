@@ -23,19 +23,19 @@ export function DashboardNav({ role }: DashboardNavProps) {
   const pathname = usePathname();
 
   const roleLinks: Record<UserRole, { href: string; label: string; icon: React.ReactNode }[]> = {
-    intern: [
+    stagiaire: [
       { href: "/dashboard/intern", label: "Tableau de bord", icon: <LayoutDashboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/intern/requests", label: "Mes demandes", icon: <Clipboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/intern/documents", label: "Mes documents", icon: <FileText className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/intern/profile", label: "Mon profil", icon: <Users className="h-4 w-4 mr-2" /> },
     ],
-    tutor: [
+    tuteur: [
       { href: "/dashboard/tutor", label: "Tableau de bord", icon: <LayoutDashboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/tutor/interns", label: "Mes stagiaires", icon: <GraduationCap className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/tutor/requests", label: "Demandes", icon: <Clipboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/tutor/profile", label: "Mon profil", icon: <Users className="h-4 w-4 mr-2" /> },
     ],
-    hr: [
+    RH: [
       { href: "/dashboard/hr", label: "Tableau de bord", icon: <LayoutDashboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/hr/interns", label: "Stagiaires", icon: <GraduationCap className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/hr/requests", label: "Demandes", icon: <Clipboard className="h-4 w-4 mr-2" /> },
@@ -47,7 +47,7 @@ export function DashboardNav({ role }: DashboardNavProps) {
       { href: "/dashboard/finance/payments", label: "Gratifications", icon: <Briefcase className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/finance/reports", label: "Rapports", icon: <Activity className="h-4 w-4 mr-2" /> },
     ],
-    admin: [
+    administrateur: [
       { href: "/dashboard/admin", label: "Tableau de bord", icon: <LayoutDashboard className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/admin/users", label: "Utilisateurs", icon: <Users className="h-4 w-4 mr-2" /> },
       { href: "/dashboard/admin/settings", label: "Paramètres", icon: <Settings className="h-4 w-4 mr-2" /> },
