@@ -66,11 +66,11 @@ export type Database = {
           updated_at?: string;
         };
       };
-      interns: {
+      stagiaires: {
         Row: {
           id: string;
           user_id: string;
-          tutor_id: string;
+          tuteur_id: string;
           department_id: string;
           school: string;
           formation: string;
