@@ -1,4 +1,8 @@
 
+import { DocumentForm } from "@/components/forms/document-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+
 "use client";
 
 import { useState } from "react";
@@ -70,10 +74,20 @@ export default function DocumentsPage() {
         <main className="flex w-full flex-col overflow-hidden py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
-            <Button>
-              <Upload className="mr-2 h-4 w-4" />
-              Ajouter un document
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Ajouter un document
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Ajouter un document</DialogTitle>
+                </DialogHeader>
+                <DocumentForm mode="create" />
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex items-center space-x-2 mb-6">

@@ -1,3 +1,8 @@
+
+import { EvaluationForm } from "@/components/forms/evaluation-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
+
 "use client";
 
 import { useState } from "react";
@@ -301,7 +306,17 @@ export default function InternsPage() {
                                 </div>
                               </div>
                               <div className="mt-6 flex justify-end gap-2">
-                                <Button variant="outline">Évaluer</Button>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline">Évaluer</Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Évaluation du stagiaire</DialogTitle>
+                                    </DialogHeader>
+                                    <EvaluationForm internId={intern.id} tutorId={currentUser?.id} mode="create" />
+                                  </DialogContent>
+                                </Dialog>
                                 <Button>Mettre à jour</Button>
                               </div>
                             </div>

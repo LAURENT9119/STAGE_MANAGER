@@ -1,3 +1,7 @@
+
+import { PaymentForm } from "@/components/forms/payment-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 "use client";
 
 import { useState } from "react";
@@ -229,9 +233,19 @@ export default function PaymentsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm">
-                          Détails
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Détails
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Détails du paiement</DialogTitle>
+                            </DialogHeader>
+                            <PaymentForm payment={payment} mode="edit" />
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
                     </TableRow>
                   ))}

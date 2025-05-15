@@ -1,3 +1,7 @@
+
+import { InternForm } from "@/components/forms/intern-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -241,9 +245,19 @@ export default function HRInternsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm">
-                          Détails
-                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Détails
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Détails du stagiaire</DialogTitle>
+                            </DialogHeader>
+                            <InternForm intern={intern} mode="edit" />
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
                     
                     </TableRow>
