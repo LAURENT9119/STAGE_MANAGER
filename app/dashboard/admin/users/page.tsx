@@ -109,10 +109,8 @@ export default function UsersPage() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Créer un utilisateur</DialogTitle>
-                    <DialogDescription>
-                      Ajoutez un nouvel utilisateur à la plateforme.
-                    </DialogDescription>
+                    <DialogTitle>Add User</DialogTitle>
+                    <DialogDescription>Add a new user to the platform</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateUser}>
                     <div className="grid gap-4 py-4">
