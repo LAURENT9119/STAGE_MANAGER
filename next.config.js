@@ -10,7 +10,7 @@ const nextConfig = {
   },
   swcMinify: true,
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
     scrollRestoration: true,
     serverMinification: true,
     fontLoaders: [
