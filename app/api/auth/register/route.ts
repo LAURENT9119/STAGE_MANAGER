@@ -23,14 +23,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: authError.message }, { status: 400 });
   }
 
-  // Create user profile
+  // Créer le profil utilisateur
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .insert({
       id: authData.user!.id,
       email: formData.email,
       name: formData.name,
-      role: formData.role,
+      role: formData.role === 'intern' ? 'stagiaire' : formData.role === 'tutor' ? 'tuteur' : formData.role,
       department: formData.department,
       position: formData.position,
       phone: formData.phone,

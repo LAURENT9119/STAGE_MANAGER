@@ -334,6 +334,6 @@ CREATE TABLE settings (
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
 -- Only admin can manage settings
-CREATE POLICY "Admin can manage settings" ON settings
+CREATE POLICY "Les administrateurs peuvent gérer les paramètres" ON settings
   FOR ALL TO authenticated
-  USING (auth.jwt() ->> 'role' = 'admin');
+  USING (auth.jwt() ->> 'role' = 'administrateur');

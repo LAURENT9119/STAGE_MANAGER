@@ -43,11 +43,11 @@ export function UserForm() {
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="intern">Intern</SelectItem>
-            <SelectItem value="tutor">Tutor</SelectItem>
-            <SelectItem value="hr">HR</SelectItem>
+            <SelectItem value="stagiaire">Stagiaire</SelectItem>
+            <SelectItem value="tuteur">Tuteur</SelectItem>
+            <SelectItem value="RH">Ressources Humaines</SelectItem>
             <SelectItem value="finance">Finance</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="administrateur">Administrateur</SelectItem>
           </SelectContent>
         </Select>
       </div>

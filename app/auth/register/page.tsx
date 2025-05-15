@@ -131,6 +131,7 @@ export default function RegisterPage() {
                         id="email"
                         placeholder="nom@example.com"
                         type="email"
+                        pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                         autoCapitalize="none"
                         autoComplete="email"
                         autoCorrect="off"

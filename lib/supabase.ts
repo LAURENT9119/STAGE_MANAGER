@@ -13,7 +13,7 @@ export type Database = {
           id: string;
           email: string;
           name: string;
-          role: 'intern' | 'tutor' | 'hr' | 'finance' | 'admin';
+          role: 'stagiaire' | 'tuteur' | 'RH' | 'finance' | 'administrateur';
           avatar_url: string | null;
           department: string | null;
           position: string | null;
@@ -25,7 +25,7 @@ export type Database = {
           id?: string;
           email: string;
           name: string;
-          role: 'intern' | 'tutor' | 'hr' | 'finance' | 'admin';
+          role: 'stagiaire' | 'tuteur' | 'RH' | 'finance' | 'administrateur';
           avatar_url?: string | null;
           department?: string | null;
           position?: string | null;
@@ -37,7 +37,7 @@ export type Database = {
           id?: string;
           email?: string;
           name?: string;
-          role?: 'intern' | 'tutor' | 'hr' | 'finance' | 'admin';
+          role?: 'stagiaire' | 'tuteur' | 'RH' | 'finance' | 'administrateur';
           avatar_url?: string | null;
           department?: string | null;
           position?: string | null;
@@ -83,7 +83,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          tutor_id: string;
+          tuteur_id: string;
           department_id: string;
           school: string;
           formation: string;
@@ -96,7 +96,7 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
-          tutor_id?: string;
+          tuteur_id?: string;
           department_id?: string;
           school?: string;
           formation?: string;
