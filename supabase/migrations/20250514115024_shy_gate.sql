@@ -92,7 +92,7 @@ CREATE TABLE users (
   updated_at timestamptz DEFAULT now()
 );
 
--- Create departments table
+-- Créer la table des départements
 CREATE TABLE departments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -122,7 +122,7 @@ CREATE TABLE requests (
   title text NOT NULL,
   details text,
   stagiaire_id uuid REFERENCES stagiaires(id) ON DELETE CASCADE,
-  status text NOT NULL CHECK (status IN ('pending', 'processing', 'approved', 'rejected')),
+  status text NOT NULL CHECK (status IN ('en_attente', 'en_cours', 'validee', 'refusee')),
   start_date date,
   end_date date,
   created_at timestamptz DEFAULT now(),
@@ -145,7 +145,7 @@ CREATE TABLE payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   stagiaire_id uuid REFERENCES stagiaires(id) ON DELETE CASCADE,
   amount numeric NOT NULL,
-  status text NOT NULL CHECK (status IN ('pending', 'paid', 'cancelled')),
+  status text NOT NULL CHECK (status IN ('en_attente', 'paye', 'annule')),
   period text NOT NULL,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
@@ -172,23 +172,23 @@ ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evaluations ENABLE ROW LEVEL SECURITY;
 
--- Create policies for users
-CREATE POLICY "Users can read their own data" ON users
+-- Créer les politiques pour les utilisateurs
+CREATE POLICY "Les utilisateurs peuvent lire leurs propres données" ON users
   FOR SELECT TO authenticated
   USING (auth.uid() = id);
 
-CREATE POLICY "HR and Admin can read all users" ON users
+CREATE POLICY "RH et Administrateur peuvent lire tous les utilisateurs" ON users
   FOR SELECT TO authenticated
-  USING (auth.jwt() ->> 'role' IN ('hr', 'admin'));
+  USING (auth.jwt() ->> 'role' IN ('RH', 'administrateur'));
 
--- Create policies for departments
-CREATE POLICY "Everyone can read departments" ON departments
+-- Créer les politiques pour les départements
+CREATE POLICY "Tout le monde peut lire les départements" ON departments
   FOR SELECT TO authenticated
   USING (true);
 
-CREATE POLICY "HR and Admin can manage departments" ON departments
+CREATE POLICY "RH et Administrateur peuvent gérer les départements" ON departments
   FOR ALL TO authenticated
-  USING (auth.jwt() ->> 'role' IN ('hr', 'admin'));
+  USING (auth.jwt() ->> 'role' IN ('RH', 'administrateur'));
 
 -- Create policies for interns
 CREATE POLICY "Interns can read their own data" ON stagiaires
@@ -241,11 +241,11 @@ CREATE POLICY "HR and Admin can manage documents" ON documents
   USING (auth.jwt() ->> 'role' IN ('hr', 'admin'));
 
 -- Create policies for payments
-CREATE POLICY "Finance can manage payments" ON payments
+CREATE POLICY "Le service Finance peut gérer les paiements" ON payments
   FOR ALL TO authenticated
-  USING (auth.jwt() ->> 'role' IN ('finance', 'admin'));
+  USING (auth.jwt() ->> 'role' IN ('finance', 'administrateur'));
 
-CREATE POLICY "Users can read their related payments" ON payments
+CREATE POLICY "Les utilisateurs peuvent lire leurs paiements" ON payments
   FOR SELECT TO authenticated
   USING (
     EXISTS (
@@ -253,7 +253,7 @@ CREATE POLICY "Users can read their related payments" ON payments
       WHERE stagiaires.id = payments.stagiaire_id
       AND (stagiaires.user_id = auth.uid() OR stagiaires.tutor_id = auth.uid())
     )
-    OR auth.jwt() ->> 'role' IN ('hr', 'finance', 'admin')
+    OR auth.jwt() ->> 'role' IN ('RH', 'finance', 'administrateur')
   );
 
 -- Create policies for evaluations
