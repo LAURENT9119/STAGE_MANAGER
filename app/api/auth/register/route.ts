@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       id: authData.user!.id,
       email: formData.email,
       name: formData.name,
-      role: formData.role === 'intern' ? 'stagiaire' : formData.role === 'tutor' ? 'tuteur' : formData.role,
+      role: formData.role,
       department: formData.department,
       position: formData.position,
       phone: formData.phone,
