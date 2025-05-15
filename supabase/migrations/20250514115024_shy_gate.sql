@@ -317,3 +317,23 @@ CREATE TRIGGER update_evaluations_updated_at
   BEFORE UPDATE ON evaluations
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Create settings table
+CREATE TABLE settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  site_name text NOT NULL DEFAULT 'Stage+',
+  site_description text NOT NULL DEFAULT 'Plateforme de gestion des stagiaires',
+  support_email text NOT NULL DEFAULT 'support@stageplus.fr',
+  require_email_verification boolean NOT NULL DEFAULT true,
+  allow_registration boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS on settings
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+
+-- Only admin can manage settings
+CREATE POLICY "Admin can manage settings" ON settings
+  FOR ALL TO authenticated
+  USING (auth.jwt() ->> 'role' = 'admin');

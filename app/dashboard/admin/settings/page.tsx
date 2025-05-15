@@ -52,14 +52,40 @@ export default function SettingsPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate settings update
-    setTimeout(() => {
+    try {
+      const settings = {
+        site_name: siteName,
+        site_description: siteDescription,
+        support_email: supportEmail,
+        require_email_verification: requireEmailVerification,
+        allow_registration: allowRegistration
+      };
+
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update settings');
+      }
+
       toast({
         title: "Paramètres mis à jour",
         description: "Les paramètres ont été enregistrés avec succès.",
       });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour des paramètres.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

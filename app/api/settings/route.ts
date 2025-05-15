@@ -1,12 +1,14 @@
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export async function GET() {
   const { data, error } = await supabase
     .from('settings')
-    .select('*');
+    .select('*')
+    .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
@@ -24,7 +26,8 @@ export async function PATCH(req: Request) {
       ...settingsData,
       updated_at: new Date().toISOString()
     })
-    .select();
+    .select()
+    .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });

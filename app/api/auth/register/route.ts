@@ -1,20 +1,20 @@
+
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  const { email, password, name, role } = await request.json();
-  
+  const formData = await request.json();
   const supabase = createRouteHandlerClient({ cookies });
   
   // Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
+    email: formData.email,
+    password: formData.password,
     options: {
       data: {
-        name,
-        role,
+        name: formData.name,
+        role: formData.role,
       },
     },
   });
@@ -28,9 +28,12 @@ export async function POST(request: Request) {
     .from('users')
     .insert({
       id: authData.user!.id,
-      email,
-      name,
-      role,
+      email: formData.email,
+      name: formData.name,
+      role: formData.role,
+      department: formData.department,
+      position: formData.position,
+      phone: formData.phone,
     })
     .select()
     .single();
