@@ -3,21 +3,22 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
+  images: {
+    domains: ['images.pexels.com'],
     unoptimized: true,
   },
   experimental: {
+    serverActions: true,
     optimizeCss: true,
     scrollRestoration: true,
     serverMinification: true,
     optimizePackageImports: [
-      'lucide-react', 
+      'lucide-react',
       '@radix-ui/react-icons',
       '@radix-ui/react-dialog',
       '@radix-ui/react-select',
       '@radix-ui/react-dropdown-menu'
     ],
-    serverActions: true
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
