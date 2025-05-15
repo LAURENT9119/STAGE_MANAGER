@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -17,6 +18,7 @@ import {
 import { MainNav } from "@/components/layout/main-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,19 +33,44 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
 
-    // This is a mock registration for demonstration, in a real app you would use Supabase Auth
-    setTimeout(() => {
+    try {
+      // 1. Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      // 2. Create user profile
+      const { error: profileError } = await supabase.from('users').insert({
+        id: authData.user!.id,
+        email,
+        name,
+        role,
+      });
+
+      if (profileError) throw profileError;
+
       toast({
         title: "Inscription réussie",
         description: "Votre compte a été créé avec succès.",
       });
       
       router.push("/auth/login");
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
+    // Le reste du JSX reste inchangé
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
