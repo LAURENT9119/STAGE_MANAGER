@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -6,11 +5,9 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    minimumCacheTTL: 60,
   },
-  swcMinify: true,
   experimental: {
-    optimizeCss: false,
+    optimizeCss: true,
     scrollRestoration: true,
     serverMinification: true,
     optimizePackageImports: [
@@ -20,8 +17,7 @@ const nextConfig = {
       '@radix-ui/react-select',
       '@radix-ui/react-dropdown-menu'
     ],
-    serverActions: true,
-    optimizeServerReact: true
+    serverActions: true
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
