@@ -11,6 +11,8 @@ import { MainNav } from "@/components/layout/main-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MOCK_USERS } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { LoginDTO } from '@/lib/dtos/user.dto';
+import { setCookie } from 'cookies-next'; // Assuming cookies-next is installed
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,14 +26,20 @@ export default function LoginPage() {
     setLoading(true);
 
     // This is a mock login for demonstration, in a real app you would use Supabase Auth
+    // and call your API endpoint for authentication, which would return a session token.
     setTimeout(() => {
       const user = MOCK_USERS[email.toLowerCase()];
-      
+
       if (user && password === "password") {
+        // Mock successful login
         toast({
           title: "Connexion réussie",
           description: "Vous êtes maintenant connecté.",
         });
+
+        // Set a cookie to simulate session management
+        setCookie('sessionToken', 'mockSessionToken', { maxAge: 60 * 60 * 24 }); // Expires in 24 hours
+
         router.push(`/dashboard/${user.role}`);
       } else {
         toast({
@@ -40,7 +48,7 @@ export default function LoginPage() {
           variant: "destructive",
         });
       }
-      
+
       setLoading(false);
     }, 1500);
   };
@@ -163,7 +171,7 @@ export default function LoginPage() {
                 </Link>
                 .
               </p>
-              
+
               <div className="mt-6 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30">
                 <div className="flex">
                   <div className="ml-3">
