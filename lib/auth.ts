@@ -61,7 +61,7 @@ export async function getDashboardStats(role: string) {
   if (!currentUser) return null;
 
   switch (role) {
-    case 'hr':
+    case 'RH':
       const { data: activeInterns } = await supabase
         .from('interns')
         .select('*')
@@ -90,7 +90,7 @@ export async function getDashboardStats(role: string) {
           Math.round((evaluations.filter(e => e.status === 'completed').length / evaluations.length) * 100) : 0
       };
 
-    case 'tutor':
+    case 'tuteur':
       const { data: tutorInterns } = await supabase
         .from('interns')
         .select('*')

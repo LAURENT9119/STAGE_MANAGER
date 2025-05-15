@@ -17,18 +17,18 @@ export interface UserProfile {
 
 // Mock user data for demonstration purposes
 export const MOCK_USERS: Record<string, UserProfile> = {
-  'intern@example.com': {
+  'stagiaire@example.com': {
     id: '1',
-    email: 'intern@example.com',
+    email: 'stagiaire@example.com',
     name: 'Jean Dupont',
-    role: 'intern',
+    role: 'stagiaire',
     avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
   },
-  'tutor@example.com': {
+  'tuteur@example.com': {
     id: '2',
-    email: 'tutor@example.com',
+    email: 'tuteur@example.com',
     name: 'Marie Laurent',
-    role: 'tutor',
+    role: 'tuteur',
     avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
   },
   'hr@example.com': {

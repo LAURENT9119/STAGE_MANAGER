@@ -3,7 +3,7 @@ export interface UserDTO {
   id: string;
   email: string;
   name: string;
-  role: 'intern' | 'tutor' | 'hr' | 'finance' | 'admin';
+  role: 'stagiaire' | 'tuteur' | 'RH' | 'finance' | 'administrateur';
   avatar_url?: string;
   department?: string;
   position?: string;
@@ -17,5 +17,5 @@ export interface LoginDTO {
 
 export interface RegisterDTO extends LoginDTO {
   name: string;
-  role: 'intern' | 'tutor';
+  role: 'stagiaire' | 'tuteur';
 }

@@ -28,11 +28,11 @@ export const metadata: Metadata = {
 
 export async function generateStaticParams() {
   return [
-    { role: 'intern' },
-    { role: 'tutor' },
-    { role: 'hr' },
+    { role: 'stagiaire' },
+    { role: 'tuteur' },
+    { role: 'RH' },
     { role: 'finance' },
-    { role: 'admin' }
+    { role: 'administrateur' }
   ];
 }
 

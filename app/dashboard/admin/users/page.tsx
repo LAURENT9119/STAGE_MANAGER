@@ -189,11 +189,11 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les rôles</SelectItem>
-                    <SelectItem value="intern">Stagiaire</SelectItem>
-                    <SelectItem value="tutor">Tuteur</SelectItem>
-                    <SelectItem value="hr">Ressources Humaines</SelectItem>
+                    <SelectItem value="stagiaire">Stagiaire</SelectItem>
+                    <SelectItem value="tuteur">Tuteur</SelectItem>
+                    <SelectItem value="RH">Ressources Humaines</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="admin">Administrateur</SelectItem>
+                    <SelectItem value="administrateur">Administrateur</SelectItem>
                   </SelectContent>
                 </Select>
 
