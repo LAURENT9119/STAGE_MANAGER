@@ -1,7 +1,6 @@
-
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -12,13 +11,13 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Protect all dashboard routes
-  if (req.nextUrl.pathname.startsWith('/dashboard') && !session) {
-    return NextResponse.redirect(new URL('/auth/login', req.url));
+  if (req.nextUrl.pathname.startsWith("/dashboard") && !session) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ["/dashboard/:path*"],
 };

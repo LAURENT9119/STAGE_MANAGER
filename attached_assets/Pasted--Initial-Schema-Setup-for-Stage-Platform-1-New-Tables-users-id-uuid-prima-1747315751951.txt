@@ -1,3 +1,83 @@
+/*
+  # Initial Schema Setup for Stage+ Platform
+
+  1. New Tables
+    - users
+      - id (uuid, primary key)
+      - email (text, unique)
+      - name (text)
+      - role (text)
+      - avatar_url (text)
+      - department (text)
+      - position (text)
+      - phone (text)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - stagiaires
+      - id (uuid, primary key)
+      - user_id (uuid, references users)
+      - tutor_id (uuid, references users)
+      - department_id (uuid, references departments)
+      - school (text)
+      - formation (text)
+      - start_date (date)
+      - end_date (date)
+      - status (text)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - departments
+      - id (uuid, primary key)
+      - name (text)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - requests
+      - id (uuid, primary key)
+      - type (text)
+      - title (text)
+      - details (text)
+      - stagiaire_id (uuid, references stagiaires)
+      - status (text)
+      - start_date (date)
+      - end_date (date)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - documents
+      - id (uuid, primary key)
+      - name (text)
+      - type (text)
+      - url (text)
+      - stagiaire_id (uuid, references stagiaires)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - payments
+      - id (uuid, primary key)
+      - stagiaire_id (uuid, references stagiaires)
+      - amount (numeric)
+      - status (text)
+      - period (text)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+    - evaluations
+      - id (uuid, primary key)
+      - stagiaire_id (uuid, references stagiaires)
+      - tutor_id (uuid, references users)
+      - type (text)
+      - score (numeric)
+      - comments (text)
+      - created_at (timestamptz)
+      - updated_at (timestamptz)
+
+  2. Security
+    - Enable RLS on all tables
+    - Add policies for each table based on user role
+*/
+
 -- Create users table
 CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,7 +104,7 @@ CREATE TABLE departments (
 CREATE TABLE stagiaires (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES users(id) ON DELETE CASCADE,
-  tutor_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  tutor_id uuid REFERENCES users(id),
   department_id uuid REFERENCES departments(id),
   school text NOT NULL,
   formation text NOT NULL,
@@ -93,18 +173,17 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evaluations ENABLE ROW LEVEL SECURITY;
 
 -- Créer les politiques pour les utilisateurs
-CREATE POLICY "Permettre l'insertion lors de l'inscription" ON users
-  FOR INSERT WITH CHECK (true);
-
 CREATE POLICY "Les utilisateurs peuvent lire leurs propres données" ON users
-  FOR SELECT USING (true);
+  FOR SELECT TO authenticated
+  USING (auth.uid() = id);
 
-CREATE POLICY "Les utilisateurs peuvent modifier leurs propres données" ON users
-  FOR UPDATE USING (auth.uid() = id)
+CREATE POLICY "RH et Administrateur peuvent lire tous les utilisateurs" ON users
+  FOR SELECT TO authenticated
+  USING (auth.jwt() ->> 'role' IN ('RH', 'administrateur'));
+
+CREATE POLICY "Permettre l'insertion lors de l'inscription" ON users
+  FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "RH et Administrateur peuvent tout faire" ON users
-  FOR ALL USING (auth.jwt() ->> 'role' IN ('RH', 'administrateur'));
 
 -- Créer les politiques pour les départements
 CREATE POLICY "Tout le monde peut lire les départements" ON departments

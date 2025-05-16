@@ -24,7 +24,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/string-utils";
 import { Filter, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface Request {
@@ -287,9 +287,12 @@ export default function RequestsPage() {
                                 Détails
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="sm:max-w-[425px]">
                               <DialogHeader>
-                                <DialogTitle>Détails de la demande</DialogTitle>
+                                <DialogTitle>Request Details</DialogTitle>
+                                <DialogDescription>
+                                  View and manage intern request information
+                                </DialogDescription>
                               </DialogHeader>
                               <div className="py-4">
                                 <div className="space-y-4">

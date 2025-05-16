@@ -25,32 +25,39 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // This is a mock login for demonstration, in a real app you would use Supabase Auth
-    // and call your API endpoint for authentication, which would return a session token.
-    setTimeout(() => {
-      const user = MOCK_USERS[email.toLowerCase()];
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (user && password === "password") {
-        // Mock successful login
+      const data = await response.json();
+
+      if (response.ok) {
         toast({
           title: "Connexion réussie",
           description: "Vous êtes maintenant connecté.",
         });
-
-        // Set a cookie to simulate session management
-        setCookie('sessionToken', 'mockSessionToken', { maxAge: 60 * 60 * 24 }); // Expires in 24 hours
-
-        router.push(`/dashboard/${user.role}`);
+        router.push(`/dashboard/${data.user.role}`);
       } else {
         toast({
           title: "Échec de la connexion",
-          description: "Email ou mot de passe incorrect.",
+          description: data.error || "Email ou mot de passe incorrect.",
           variant: "destructive",
         });
       }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la connexion.",
+        variant: "destructive",
+      });
+    }
 
-      setLoading(false);
-    }, 1500);
+    setLoading(false);
   };
 
   return (

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -43,7 +42,7 @@ export default function RegisterPage() {
       if (authError) throw authError;
 
       // 2. Create user profile
-      const { error: profileError } = await supabase.from('users').insert({
+      const { error: profileError } = await supabase.from("users").insert({
         id: authData.user!.id,
         email,
         name,
@@ -56,7 +55,7 @@ export default function RegisterPage() {
         title: "Inscription réussie",
         description: "Votre compte a été créé avec succès.",
       });
-      
+
       router.push("/auth/login");
     } catch (error: any) {
       toast({
@@ -94,9 +93,13 @@ export default function RegisterPage() {
             <div className="relative z-20 mt-auto">
               <blockquote className="space-y-2">
                 <p className="text-lg">
-                  &ldquo;Stage+ nous a permis de digitaliser tout notre processus de gestion des stagiaires et d&apos;augmenter notre efficacité de 70%.&rdquo;
+                  &ldquo;Stage+ nous a permis de digitaliser tout notre
+                  processus de gestion des stagiaires et d&apos;augmenter notre
+                  efficacité de 70%.&rdquo;
                 </p>
-                <footer className="text-sm">Marc Dubois, Directeur de l&apos;Innovation</footer>
+                <footer className="text-sm">
+                  Marc Dubois, Directeur de l&apos;Innovation
+                </footer>
               </blockquote>
             </div>
           </div>
@@ -156,7 +159,7 @@ export default function RegisterPage() {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="role">Rôle</Label>
-                      <Select 
+                      <Select
                         defaultValue="intern"
                         onValueChange={setRole}
                         disabled={loading}
@@ -165,7 +168,7 @@ export default function RegisterPage() {
                           <SelectValue placeholder="Sélectionnez votre rôle" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="intern">Stagiaire</SelectItem>
+                          <SelectItem value="intern">stagiaire</SelectItem>
                           <SelectItem value="tutor">Tuteur</SelectItem>
                         </SelectContent>
                       </Select>
@@ -190,7 +193,10 @@ export default function RegisterPage() {
                 </div>
                 <div className="text-center text-sm">
                   Vous avez déjà un compte?{" "}
-                  <Link href="/auth/login" className="underline underline-offset-4 hover:text-primary">
+                  <Link
+                    href="/auth/login"
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
                     Se connecter
                   </Link>
                 </div>

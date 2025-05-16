@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -13,11 +17,11 @@ export type Database = {
           id: string;
           email: string;
           name: string;
-          role: 'stagiaire' | 'tuteur' | 'RH' | 'finance' | 'administrateur';
-          avatar_url: string | null;
-          department: string | null;
-          position: string | null;
-          phone: string | null;
+          role: string;
+          avatar_url?: string;
+          department?: string;
+          position?: string;
+          phone?: string;
           created_at: string;
           updated_at: string;
         };

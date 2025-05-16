@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { useState } from "react";
 import { MainNav } from "@/components/layout/main-nav";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
@@ -131,23 +131,23 @@ export default function RequestsPage() {
   const [requestTypeFilter, setRequestTypeFilter] = useState<RequestType | "all">("all");
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // New request form state
   const [requestType, setRequestType] = useState<RequestType | "">("");
   const [requestTitle, setRequestTitle] = useState("");
   const [requestDetails, setRequestDetails] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  
+
   const filteredRequests = requests.filter(request => {
     const matchesType = requestTypeFilter === "all" || request.type === requestTypeFilter;
     const matchesStatus = statusFilter === "all" || request.status === statusFilter;
     const matchesSearch = request.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           request.details.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesType && matchesStatus && matchesSearch;
   });
-  
+
   const handleNewRequest = () => {
     if (!requestType || !requestTitle || !requestDetails) {
       toast({
@@ -157,7 +157,7 @@ export default function RequestsPage() {
       });
       return;
     }
-    
+
     // Additional validation for specific request types
     if ((requestType === "conge" || requestType === "prolongation") && (!startDate || !endDate)) {
       toast({
@@ -167,7 +167,7 @@ export default function RequestsPage() {
       });
       return;
     }
-    
+
     const newRequest: Request = {
       id: `req-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
       type: requestType,
@@ -177,17 +177,17 @@ export default function RequestsPage() {
       details: requestDetails + (startDate && endDate ? 
         ` (Du ${formatDate(startDate)} au ${formatDate(endDate)})` : "")
     };
-    
+
     setRequests([newRequest, ...requests]);
     setNewRequestOpen(false);
     resetForm();
-    
+
     toast({
       title: "Demande créée avec succès",
       description: "Votre demande a été soumise et est en attente de validation.",
     });
   };
-  
+
   const resetForm = () => {
     setRequestType("");
     setRequestTitle("");
@@ -232,7 +232,7 @@ export default function RequestsPage() {
                     <Select 
                       value={requestType} 
                       onValueChange={(value) => setRequestType(value as RequestType)}
-      
+
                     >
                       <SelectTrigger id="requestType">
                         <SelectValue placeholder="Sélectionnez un type de demande" />
@@ -267,7 +267,7 @@ export default function RequestsPage() {
                       rows={4}
                     />
                   </div>
-                  
+
                   {(requestType === "conge" || requestType === "prolongation") && (
                     <>
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -333,7 +333,7 @@ export default function RequestsPage() {
                       </div>
                     </>
                   )}
-                  
+
                   {requestType === "convention" && (
                     <div className="grid grid-cols-4 items-center gap-4">
                       <div className="col-span-1"></div>
@@ -353,7 +353,7 @@ export default function RequestsPage() {
               </DialogContent>
             </Dialog>
           </div>
-          
+
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <div className="relative w-full md:w-80">
@@ -379,7 +379,7 @@ export default function RequestsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="mr-2 h-4 w-4" />
@@ -394,7 +394,7 @@ export default function RequestsPage() {
               </Select>
             </div>
           </div>
-          
+
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="all">Toutes</TabsTrigger>
@@ -403,7 +403,7 @@ export default function RequestsPage() {
               <TabsTrigger value="validee">Validées</TabsTrigger>
               <TabsTrigger value="refusee">Refusées</TabsTrigger>
             </TabsList>
-            
+
             {["all", "en_attente", "en_cours", "validee", "refusee"].map((tab) => (
               <TabsContent key={tab} value={tab} className="w-full">
                 {filteredRequests.filter(req => tab === "all" || req.status === tab).length > 0 ? (
@@ -447,11 +447,11 @@ export default function RequestsPage() {
                                       Détails
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent>
+                                  <DialogContent className="sm:max-w-[425px]">
                                     <DialogHeader>
-                                      <DialogTitle>{request.title}</DialogTitle>
+                                      <DialogTitle>Request Details</DialogTitle>
                                       <DialogDescription>
-                                        {requestTypeLabels[request.type]} - {formatDate(request.date)}
+                                        View and manage your request information
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="py-4">
@@ -473,28 +473,28 @@ export default function RequestsPage() {
                                         <p className="text-sm font-medium mb-1">Détails</p>
                                         <p className="text-sm">{request.details}</p>
                                       </div>
-                                      
+
                                       {request.status === "en_attente" && (
                                         <div className="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300">
                                           <AlertCircle className="h-4 w-4 mr-2" />
                                           <p>Votre demande est en attente d'approbation par votre tuteur.</p>
                                         </div>
                                       )}
-                                      
+
                                       {request.status === "en_cours" && (
                                         <div className="flex items-center p-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300">
                                           <AlertCircle className="h-4 w-4 mr-2" />
                                           <p>Votre demande est en cours de traitement par les Ressources Humaines.</p>
                                         </div>
                                       )}
-                                      
+
                                       {request.status === "validee" && (
                                         <div className="flex items-center p-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-green-900/30 dark:text-green-300">
                                           <AlertCircle className="h-4 w-4 mr-2" />
                                           <p>Votre demande a été approuvée. Vous pouvez télécharger les documents associés dans la section Documents.</p>
                                         </div>
                                       )}
-                                      
+
                                       {request.status === "refusee" && (
                                         <div className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-900/30 dark:text-red-300">
                                           <AlertCircle className="h-4 w-4 mr-2" />

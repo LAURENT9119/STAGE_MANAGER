@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -28,6 +27,7 @@ import { Filter, Search, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface Request {
   id: string;
@@ -316,9 +316,12 @@ export default function RequestsPage() {
                                       Détails
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent>
+                                  <DialogContent className="sm:max-w-[425px]">
                                     <DialogHeader>
-                                      <DialogTitle>Détails de la demande</DialogTitle>
+                                      <DialogTitle>Request Details</DialogTitle>
+                                      <DialogDescription>
+                                        View and manage request details
+                                      </DialogDescription>
                                     </DialogHeader>
                                     <div className="py-4">
                                       <div className="space-y-4">
@@ -365,7 +368,7 @@ export default function RequestsPage() {
                                           </span>
                                         </div>
                                       </div>
-                                      
+
                                       {request.status === "pending" && (
                                         <div className="mt-6 flex justify-end gap-2">
                                           <Button
@@ -381,7 +384,7 @@ export default function RequestsPage() {
                                           </Button>
                                         </div>
                                       )}
-                                      
+
                                       {request.status === "processing" && (
                                         <div className="mt-6 flex justify-end gap-2">
                                           <Button
