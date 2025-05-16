@@ -1,3 +1,5 @@
+'use client';
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { Database } from './supabase';
@@ -7,17 +9,13 @@ export const supabase = createClientComponentClient<Database>();
 
 export async function getCurrentUser(): Promise<UserDTO | null> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error || !session) {
-      console.error('Auth error:', error?.message);
-      return null;
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
 
     const { data: profile } = await supabase
       .from('users')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     return profile;
@@ -86,7 +84,7 @@ export async function getDashboardStats(role: string) {
         totalInterns: activeInterns?.length || 0,
         pendingRequests: pendingRequests?.length || 0,
         monthlyConventions: monthlyConventions?.length || 0,
-        evaluationRate: evaluations?.length ? 
+        evaluationRate: evaluations?.length ?
           Math.round((evaluations.filter(e => e.status === 'completed').length / evaluations.length) * 100) : 0
       };
 
