@@ -1,7 +1,4 @@
-'use client';
-
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { Database } from './supabase';
 import { UserDTO } from './dtos/user.dto';
 
@@ -20,10 +17,64 @@ export async function getCurrentUser(): Promise<UserDTO | null> {
 
     return profile;
   } catch (error) {
-    console.error('Session error:', error);
+    console.error('Auth error:', error);
     return null;
   }
 }
+
+export async function getDashboardStats(role: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return null;
+
+  try {
+    switch (role) {
+      case 'RH':
+        const [activeInterns, pendingRequests, monthlyConventions, evaluations] = await Promise.all([
+          supabase.from('interns').select('*').eq('status', 'active'),
+          supabase.from('requests').select('*').eq('status', 'pending'),
+          supabase.from('requests')
+            .select('*')
+            .eq('type', 'convention')
+            .gte('created_at', new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString()),
+          supabase.from('evaluations').select('*')
+        ]);
+
+        return {
+          totalInterns: activeInterns.data?.length || 0,
+          pendingRequests: pendingRequests.data?.length || 0,
+          monthlyConventions: monthlyConventions.data?.length || 0,
+          evaluationRate: evaluations.data?.length ?
+            Math.round((evaluations.data.filter(e => e.status === 'completed').length / evaluations.data.length) * 100) : 0
+        };
+
+      case 'tuteur':
+        const [tutorInterns, tutorRequests] = await Promise.all([
+          supabase.from('interns').select('*').eq('tutor_id', currentUser.id),
+          supabase.from('requests').select('*').eq('status', 'pending').eq('tutor_id', currentUser.id)
+        ]);
+
+        return {
+          activeInterns: tutorInterns.data?.length || 0,
+          pendingRequests: tutorRequests.data?.length || 0
+        };
+
+      case 'finance':
+        const { data: payments } = await supabase.from('payments').select('*');
+        return {
+          totalAmount: payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
+          pendingPayments: payments?.filter(p => p.status === 'pending').length || 0
+        };
+
+      default:
+        return null;
+    }
+  } catch (error) {
+    console.error('Stats error:', error);
+    return null;
+  }
+}
+
+import { cookies } from 'next/headers';
 
 export async function login(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -52,72 +103,6 @@ export async function logout() {
   // Clear session cookie
   const cookieStore = cookies();
   cookieStore.delete('session');
-}
-
-export async function getDashboardStats(role: string) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) return null;
-
-  switch (role) {
-    case 'RH':
-      const { data: activeInterns } = await supabase
-        .from('interns')
-        .select('*')
-        .eq('status', 'active');
-
-      const { data: pendingRequests } = await supabase
-        .from('requests')
-        .select('*')
-        .eq('status', 'pending');
-
-      const { data: monthlyConventions } = await supabase
-        .from('requests')
-        .select('*')
-        .eq('type', 'convention')
-        .gte('created_at', new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString());
-
-      const { data: evaluations } = await supabase
-        .from('evaluations')
-        .select('*');
-
-      return {
-        totalInterns: activeInterns?.length || 0,
-        pendingRequests: pendingRequests?.length || 0,
-        monthlyConventions: monthlyConventions?.length || 0,
-        evaluationRate: evaluations?.length ?
-          Math.round((evaluations.filter(e => e.status === 'completed').length / evaluations.length) * 100) : 0
-      };
-
-    case 'tuteur':
-      const { data: tutorInterns } = await supabase
-        .from('interns')
-        .select('*')
-        .eq('tutor_id', currentUser.id);
-
-      const { data: tutorRequests } = await supabase
-        .from('requests')
-        .select('*')
-        .eq('status', 'pending')
-        .eq('tutor_id', currentUser.id);
-
-      return {
-        activeInterns: tutorInterns?.length || 0,
-        pendingRequests: tutorRequests?.length || 0
-      };
-
-    case 'finance':
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('*');
-
-      return {
-        totalAmount: payments?.reduce((sum, p) => sum + p.amount, 0) || 0,
-        pendingPayments: payments?.filter(p => p.status === 'pending').length || 0
-      };
-
-    default:
-      return null;
-  }
 }
 
 export async function getRecentActivity(role: string) {
