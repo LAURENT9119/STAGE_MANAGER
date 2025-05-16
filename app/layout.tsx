@@ -1,3 +1,4 @@
+
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -5,8 +6,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
-
-export const revalidate = 3600; // Revalidation toutes les heures
 
 export const metadata: Metadata = {
   title: 'Stage+ | Gestion des Stagiaires',
@@ -21,7 +20,12 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light">
+        <ThemeProvider 
+          attribute="class" 
+          defaultTheme="light" 
+          enableSystem={false}
+          disableTransitionOnChange
+        >
           {children}
           <Toaster />
         </ThemeProvider>
