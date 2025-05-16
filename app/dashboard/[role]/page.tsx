@@ -1,25 +1,11 @@
-'use client';
-
-import { useEffect, useState } from "react";
-import { notFound } from "next/navigation";
-import { Metadata } from "next";
-import { 
-  Clipboard, 
-  GraduationCap, 
-  ClipboardCheck, 
-  FileText, 
-  CalendarCheck, 
-  Users,
-  AlertTriangle
-} from "lucide-react";
-
-import { UserRole } from "@/lib/utils";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { MainNav } from "@/components/layout/main-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
+import { MainNav } from "@/components/layout/main-nav";
+import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { UserRole } from "@/lib/utils";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Tableau de bord | Stage+",
   description: "Tableau de bord de gestion des stagiaires",
 };
