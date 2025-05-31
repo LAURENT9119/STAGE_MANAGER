@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export class AuthService {
+class AuthService {
   static async signIn(email: string, password: string) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -85,4 +85,34 @@ export class AuthService {
       throw error;
     }
   }
+
+  static async getSession() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    } catch (error) {
+      console.error('Get session error:', error);
+      return null;
+    }
+  }
+
+  static async refreshUser(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Refresh user error:', error);
+      return null;
+    }
+  }
 }
+
+// Export both the class and an instance
+export { AuthService };
+export const authService = AuthService;

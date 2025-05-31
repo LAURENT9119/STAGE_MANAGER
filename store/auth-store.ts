@@ -1,7 +1,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authService, User } from '@/lib/auth-service';
+import { AuthService } from '@/lib/auth-service';
+import { User } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 
 interface AuthState {
@@ -26,10 +27,19 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         set({ loading: true, error: null });
         try {
-          const user = await authService.signIn(email, password);
-          if (user) {
-            set({ user, loading: false });
-            return true;
+          const result = await AuthService.signIn(email, password);
+          if (result?.user) {
+            // Get user profile from database
+            const { data: userData } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', result.user.id)
+              .single();
+            
+            if (userData) {
+              set({ user: userData, loading: false });
+              return true;
+            }
           }
           set({ error: 'Échec de la connexion', loading: false });
           return false;
@@ -42,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         set({ loading: true });
         try {
-          await authService.signOut();
+          await AuthService.signOut();
           set({ user: null, loading: false, error: null });
         } catch (error: any) {
           set({ error: error.message || 'Erreur de déconnexion', loading: false });
@@ -52,10 +62,25 @@ export const useAuthStore = create<AuthState>()(
       signUp: async (email: string, password: string, fullName: string, role: string) => {
         set({ loading: true, error: null });
         try {
-          const user = await authService.signUp(email, password, fullName, role);
-          if (user) {
-            set({ user, loading: false });
-            return true;
+          const userData = { full_name: fullName, role };
+          const result = await AuthService.signUp(email, password, userData);
+          if (result?.user) {
+            // Create user profile in database
+            const { data: newUser } = await supabase
+              .from('users')
+              .insert({
+                id: result.user.id,
+                email: result.user.email,
+                full_name: fullName,
+                role: role as any
+              })
+              .select()
+              .single();
+            
+            if (newUser) {
+              set({ user: newUser, loading: false });
+              return true;
+            }
           }
           set({ error: 'Échec de l\'inscription', loading: false });
           return false;
@@ -69,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
         const currentUser = get().user;
         if (currentUser) {
           try {
-            const refreshedUser = await authService.refreshUser(currentUser.id);
+            const refreshedUser = await AuthService.refreshUser(currentUser.id);
             if (refreshedUser) {
               set({ user: refreshedUser });
             }
@@ -84,7 +109,7 @@ export const useAuthStore = create<AuthState>()(
       initializeAuth: async () => {
         set({ loading: true });
         try {
-          const session = await authService.getSession();
+          const session = await AuthService.getSession();
           if (session?.user) {
             const { data: userData } = await supabase
               .from('users')
