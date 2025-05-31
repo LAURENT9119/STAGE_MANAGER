@@ -1,0 +1,51 @@
+[23:56:55.348] Running build in Washington, D.C., USA (East) – iad1
+[23:56:55.348] Build machine configuration: 2 cores, 8 GB
+[23:56:55.365] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: 8cb1753)
+[23:56:55.562] Previous build caches not available
+[23:56:58.984] Cloning completed: 3.618s
+[23:56:59.302] Running "vercel build"
+[23:56:59.758] Vercel CLI 42.2.0
+[23:57:00.066] Installing dependencies...
+[23:57:03.459] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[23:57:04.945] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[23:57:05.025] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+[23:57:05.106] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[23:57:05.177] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[23:57:05.384] npm warn deprecated glob@7.1.7: Glob versions prior to v9 are no longer supported
+[23:57:06.976] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[23:57:12.869] 
+[23:57:12.869] added 552 packages in 13s
+[23:57:12.869] 
+[23:57:12.870] 154 packages are looking for funding
+[23:57:12.870]   run `npm fund` for details
+[23:57:12.923] Detected Next.js version: 13.5.1
+[23:57:12.923] Running "npm run build"
+[23:57:13.039] 
+[23:57:13.040] > nextjs@0.1.0 build
+[23:57:13.040] > next build
+[23:57:13.041] 
+[23:57:13.568]    Creating an optimized production build...
+[23:57:31.283] Browserslist: caniuse-lite is outdated. Please run:
+[23:57:31.283]   npx update-browserslist-db@latest
+[23:57:31.283]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[23:57:37.653] Browserslist: caniuse-lite is outdated. Please run:
+[23:57:37.654]   npx browserslist@latest --update-db
+[23:57:37.655]   Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[23:57:39.202]  ✓ Compiled successfully
+[23:57:39.203]    Linting and checking validity of types...
+[23:57:50.799] Failed to compile.
+[23:57:50.800] 
+[23:57:50.800] ./app/dashboard/[role]/page.tsx:42:18
+[23:57:50.801] Type error: Conversion of type 'User' to type 'UserWithMetadata' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[23:57:50.801]   Type 'User' is missing the following properties from type 'UserWithMetadata': app_metadata, aud
+[23:57:50.801] 
+[23:57:50.801] [0m [90m 40 | [39m      [33m<[39m[33mUserWelcome[39m user[33m=[39m{{[0m
+[23:57:50.801] [0m [90m 41 | [39m        [33m...[39muser[33m,[39m[0m
+[23:57:50.801] [0m[31m[1m>[22m[39m[90m 42 | [39m        avatar[33m:[39m (user [36mas[39m [33mUserWithMetadata[39m)[33m.[39muser_metadata[33m?[39m[33m.[39mavatar_url [33m||[39m [32m'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'[39m[0m
+[23:57:50.801] [0m [90m    | [39m                 [31m[1m^[22m[39m[0m
+[23:57:50.801] [0m [90m 43 | [39m      }} [33m/[39m[33m>[39m[0m
+[23:57:50.802] [0m [90m 44 | [39m[0m
+[23:57:50.802] [0m [90m 45 | [39m      {[90m/* Statistiques rapides */[39m}[0m
+[23:57:50.904] Error: Command "npm run build" exited with 1
+[23:57:52.092] 
+[23:57:55.266] Exiting build container
