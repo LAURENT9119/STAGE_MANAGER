@@ -379,4 +379,7 @@ export default function InternRequestsPage() {
       <SiteFooter />
     </div>
   );
+}oter />
+    </div>
+  );
 }

@@ -402,7 +402,53 @@ export default function UsersPage() {
                             </Avatar>
                             <div>
                               <div className="font-medium">{user.full_name}</div>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground">{user.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {user.role.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(user.updated_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm">
+                              Modifier
+                            </Button>
+                            <Button variant="destructive" size="sm">
+                              Supprimer
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </main>
+      </div>
+      <SiteFooter />
+    </div>
+  );
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}t-sm text-muted-foreground">
                                 {user.email}
                               </div>
                             </div>

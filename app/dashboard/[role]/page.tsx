@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { authService } from '@/lib/auth-service';
 import { ProductionService } from '@/lib/production-service';
-import { useAppStore } from '@/store/app-store';
+import { useAuthStore } from '@/store/auth-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const role = params.role as string;
   
-  const { currentUser, setCurrentUser, setAuthenticated } = useAppStore();
+  const { user: currentUser, setUser: setCurrentUser, setAuthenticated } = useAuthStore();
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [recentData, setRecentData] = useState<any>({});

@@ -98,3 +98,8 @@ export default function PrivacyPage() {
     </div>
   );
 }
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
