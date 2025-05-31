@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { useToast } from "@/hooks/use-toast";
-import { requestService } from "@/lib/supabase";
+import { supabase, requestService } from "@/lib/supabase";
 
 export default function InternRequestsPage() {
   const { user } = useAuthStore();
