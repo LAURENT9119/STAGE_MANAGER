@@ -1,51 +1,45 @@
+'use client';
 
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
+import { DashboardNav } from '@/components/layout/dashboard-nav';
 import { MainNav } from "@/components/layout/main-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { useAuthStore } from "@/store/auth-store";
-import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, loading, initializeAuth } = useAuthStore();
   const router = useRouter();
-  const { user, loading, getCurrentUser } = useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const initAuth = async () => {
-      await getCurrentUser();
+    const initialize = async () => {
+      await initializeAuth();
       setIsInitialized(true);
     };
-    
-    initAuth();
-  }, [getCurrentUser]);
+    initialize();
+  }, [initializeAuth]);
 
   useEffect(() => {
     if (isInitialized && !loading && !user) {
-      router.push("/auth/login");
+      router.push('/auth/login');
     }
-  }, [isInitialized, loading, user, router]);
+  }, [user, loading, isInitialized, router]);
 
   if (!isInitialized || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Chargement...</p>
-        </div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   if (!user) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (

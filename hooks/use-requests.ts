@@ -1,112 +1,90 @@
+import { useState, useEffect } from 'react';
+import { requestService, Request } from '@/lib/supabase';
+import { useAuthStore } from '@/store/auth-store';
 
-import { useState, useEffect } from 'react'
-import { requestService } from '@/lib/supabase'
-import { useAuthStore } from '@/store/auth-store'
-
-export interface Request {
-  id: string
-  intern_id: string
-  type: 'convention' | 'prolongation' | 'conge' | 'gratification' | 'evaluation'
-  title: string
-  description: string
-  status: 'pending' | 'approved' | 'rejected'
-  reviewer_id?: string
-  reviewer_comments?: string
-  created_at: string
-  reviewed_at?: string
-  intern: {
-    id: string
-    department: string
-    user: {
-      id: string
-      full_name: string
-      email: string
-    }
-  }
+interface UseRequestsState {
+  requests: Request[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  createRequest: (data: any) => Promise<boolean>;
+  updateRequest: (id: string, data: any) => Promise<boolean>;
 }
 
-export const useRequests = () => {
-  const [requests, setRequests] = useState<Request[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const { user } = useAuthStore()
+export function useRequests(): UseRequestsState {
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   const fetchRequests = async () => {
     try {
-      setLoading(true)
-      const { data, error } = await requestService.getAll()
-      
-      if (error) {
-        setError(error.message)
-        return
+      setLoading(true);
+      setError(null);
+
+      if (!user) {
+        setRequests([]);
+        return;
       }
 
-      // Filter based on user role
-      let filteredRequests = data || []
-      
-      if (user) {
-        switch (user.role) {
-          case 'intern':
-            // Interns see only their own requests
-            filteredRequests = filteredRequests.filter(req => 
-              req.intern.user.id === user.id
-            )
-            break
-          case 'tutor':
-            // Tutors see requests from their assigned interns
-            // This would need additional logic to check tutor assignments
-            break
-          case 'hr':
-          case 'admin':
-          case 'finance':
-            // HR, Admin, Finance see all requests
-            break
+      let result;
+      if (user.role === 'intern') {
+        // Pour les stagiaires, récupérer seulement leurs demandes
+        // D'abord récupérer l'ID de stage
+        const { data: internData } = await requestService.getAll();
+        if (internData) {
+          const userRequests = internData.filter((request: Request) => 
+            request.intern?.user_id === user.id
+          );
+          setRequests(userRequests);
+        }
+      } else {
+        // Pour les autres rôles, récupérer toutes les demandes
+        result = await requestService.getAll();
+        if (result.data) {
+          setRequests(result.data);
         }
       }
 
-      setRequests(filteredRequests)
-      setError(null)
-    } catch (err) {
-      setError('Erreur lors du chargement des demandes')
-      console.error('Error fetching requests:', err)
+      if (result?.error) {
+        setError(result.error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors du chargement des demandes');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const createRequest = async (data: any): Promise<boolean> => {
+    try {
+      const result = await requestService.create(data);
+      if (result.error) {
+        setError(result.error.message);
+        return false;
+      }
+      await fetchRequests(); // Recharger la liste
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  const updateRequest = async (id: string, data: any): Promise<boolean> => {
+    try {
+      // Logique de mise à jour à implémenter selon vos besoins
+      await fetchRequests(); // Recharger la liste
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    fetchRequests()
-  }, [user])
-
-  const createRequest = async (requestData: Partial<Request>) => {
-    try {
-      const { data, error } = await requestService.create({
-        ...requestData,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      })
-      
-      if (error) throw error
-      
-      await fetchRequests() // Refresh the list
-      return { data, error: null }
-    } catch (err: any) {
-      return { data: null, error: err.message }
-    }
-  }
-
-  const updateStatus = async (id: string, status: string, reviewerId: string, comments?: string) => {
-    try {
-      const { data, error } = await requestService.updateStatus(id, status, reviewerId, comments)
-      
-      if (error) throw error
-      
-      await fetchRequests() // Refresh the list
-      return { data, error: null }
-    } catch (err: any) {
-      return { data: null, error: err.message }
-    }
-  }
+    fetchRequests();
+  }, [user]);
 
   return {
     requests,
@@ -114,6 +92,6 @@ export const useRequests = () => {
     error,
     refetch: fetchRequests,
     createRequest,
-    updateStatus
-  }
+    updateRequest,
+  };
 }

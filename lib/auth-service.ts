@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface User {
@@ -12,8 +13,6 @@ export interface User {
 }
 
 export class AuthService {
-  private isProduction = process.env.NODE_ENV === 'production';
-
   async signIn(email: string, password: string): Promise<User | null> {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -159,31 +158,18 @@ export class AuthService {
     }
   }
 
-  // Mode développement - utilisateurs de test (uniquement en dev)
-  getTestUsers(): User[] {
-    if (process.env.NODE_ENV !== 'development') return [];
-    
-    return [
-      { id: '1', email: 'admin@company.com', full_name: 'Admin Test', role: 'admin', created_at: new Date().toISOString() },
-      { id: '2', email: 'hr@company.com', full_name: 'HR Test', role: 'hr', created_at: new Date().toISOString() },
-      { id: '3', email: 'tutor@company.com', full_name: 'Tutor Test', role: 'tutor', created_at: new Date().toISOString() },
-      { id: '4', email: 'intern@company.com', full_name: 'Intern Test', role: 'intern', created_at: new Date().toISOString() },
-      { id: '5', email: 'finance@company.com', full_name: 'Finance Test', role: 'finance', created_at: new Date().toISOString() },
-    ];
+  async getSession() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    } catch (error) {
+      console.error('Get session error:', error);
+      return null;
+    }
   }
 
-  async switchTestUser(email: string): Promise<User | null> {
-    if (process.env.NODE_ENV !== 'development') return null;
-    
-    const testUsers = this.getTestUsers();
-    const user = testUsers.find(u => u.email === email);
-    
-    if (user && typeof window !== 'undefined') {
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return user;
-    }
-    
-    return null;
+  async onAuthStateChange(callback: (event: string, session: any) => void) {
+    return supabase.auth.onAuthStateChange(callback);
   }
 }
 
