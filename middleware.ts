@@ -1,11 +1,10 @@
-
 import { createMiddlewareClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  
+
   try {
     // Vérification des variables d'environnement
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

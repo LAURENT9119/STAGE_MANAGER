@@ -441,14 +441,7 @@ export default function UsersPage() {
   );
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}t-sm text-muted-foreground">
+<div className="text-sm text-muted-foreground">
                                 {user.email}
                               </div>
                             </div>

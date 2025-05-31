@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -28,6 +27,9 @@ const nextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+  experimental: {
+    serverActions: true,
+  },
   async headers() {
     return [
       {

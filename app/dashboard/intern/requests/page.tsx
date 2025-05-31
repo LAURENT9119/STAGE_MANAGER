@@ -11,9 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
-
-import { CreateRequestDialog } from "@/components/requests/create-request-dialog";
-
   TableCell,
   TableHead,
   TableHeader,
@@ -203,7 +200,17 @@ export default function InternRequestsPage() {
                   Gérez vos demandes et suivez leur progression ({requests.length} demandes)
                 </p>
               </div>
-              <CreateRequestDialog />Description>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nouvelle demande
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Créer une demande</DialogTitle>
+                    <DialogDescription>
                       Remplissez les informations ci-dessous pour soumettre votre demande.
                     </DialogDescription>
                   </DialogHeader>

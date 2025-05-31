@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface User {
@@ -47,13 +46,13 @@ export class AuthService {
             .single();
 
           if (createError) throw createError;
-          
+
           if (typeof window !== 'undefined') {
             localStorage.setItem('currentUser', JSON.stringify(createdUser));
           }
           return createdUser;
         }
-        
+
         if (typeof window !== 'undefined') {
           localStorage.setItem('currentUser', JSON.stringify(userData));
         }
@@ -98,7 +97,7 @@ export class AuthService {
           .single();
 
         if (createError) throw createError;
-        
+
         if (typeof window !== 'undefined') {
           localStorage.setItem('currentUser', JSON.stringify(createdUser));
         }
@@ -116,7 +115,7 @@ export class AuthService {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
+
       if (typeof window !== 'undefined') {
         localStorage.removeItem('currentUser');
       }
@@ -128,7 +127,7 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null;
-    
+
     const stored = localStorage.getItem('currentUser');
     if (stored) {
       try {
@@ -149,7 +148,7 @@ export class AuthService {
         .single();
 
       if (error) return null;
-      
+
       if (typeof window !== 'undefined') {
         localStorage.setItem('currentUser', JSON.stringify(data));
       }
@@ -159,6 +158,15 @@ export class AuthService {
       return null;
     }
   }
+
+  // Mode développement - utilisateurs de test (uniquement en dev)
+  const testUsers = process.env.NODE_ENV === 'development' ? [
+    { email: 'admin@company.com', password: 'test123', role: 'admin' },
+    { email: 'hr@company.com', password: 'test123', role: 'hr' },
+    { email: 'tutor@company.com', password: 'test123', role: 'tutor' },
+    { email: 'intern@company.com', password: 'test123', role: 'intern' },
+    { email: 'finance@company.com', password: 'test123', role: 'finance' },
+  ] : [];
 }
 
 export const authService = new AuthService();
