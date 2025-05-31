@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { authService } from '@/lib/auth-service';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');

@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,

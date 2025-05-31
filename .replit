@@ -1,12 +1,49 @@
+
 modules = ["nodejs-20", "web"]
-run = "npm run dev"
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm start"]
+run = ["sh", "-c", "npm run build && npm start"]
+deploymentTarget = "static"
 
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[env]
+NODE_ENV = "production"
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+enabledForHosting = false
+
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+
+[languages.javascript.languageServer]
+start = "typescript-language-server --stdio"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
+
+[workflows]
+runButton = "Production Build"
+
+[[workflows.workflow]]
+name = "Production Build"
+author = 43339645
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"

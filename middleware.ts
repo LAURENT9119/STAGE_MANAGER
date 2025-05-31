@@ -5,29 +5,32 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   try {
-    // Vérification des variables d'environnement
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.warn("Supabase environment variables not found");
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("Supabase environment variables not found");
+      }
       return NextResponse.next();
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Récupérer la session depuis les cookies
+    // Get session from cookies
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
-    // Protection des routes dashboard
-    if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    const { pathname } = req.nextUrl;
+
+    // Dashboard routes protection
+    if (pathname.startsWith("/dashboard")) {
       if (!session) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
 
-      // Vérifier que l'utilisateur existe dans la table users
+      // Verify user exists in database
       const { data: userData } = await supabase
         .from('users')
         .select('*')
@@ -38,38 +41,29 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
 
-      // Vérification des rôles pour les routes spécifiques
-      const pathname = req.nextUrl.pathname;
       const userRole = userData.role;
 
-      // Routes admin
-      if (pathname.startsWith("/dashboard/admin") && userRole !== "admin") {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
-      }
+      // Role-based route protection
+      const roleRoutes = {
+        admin: ["/dashboard/admin"],
+        hr: ["/dashboard/hr"],
+        finance: ["/dashboard/finance"],
+        tutor: ["/dashboard/tutor"],
+        intern: ["/dashboard/intern"]
+      };
 
-      // Routes HR
-      if (pathname.startsWith("/dashboard/hr") && userRole !== "hr" && userRole !== "admin") {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
-      }
-
-      // Routes finance
-      if (pathname.startsWith("/dashboard/finance") && userRole !== "finance" && userRole !== "admin") {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
-      }
-
-      // Routes tutor
-      if (pathname.startsWith("/dashboard/tutor") && userRole !== "tutor" && userRole !== "admin") {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
-      }
-
-      // Routes intern
-      if (pathname.startsWith("/dashboard/intern") && userRole !== "intern" && userRole !== "admin") {
-        return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
+      // Check if user is trying to access unauthorized routes
+      for (const [role, routes] of Object.entries(roleRoutes)) {
+        for (const route of routes) {
+          if (pathname.startsWith(route) && userRole !== role && userRole !== "admin") {
+            return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
+          }
+        }
       }
     }
 
-    // Redirection vers dashboard si déjà connecté et sur page auth
-    if ((req.nextUrl.pathname.startsWith("/auth") || req.nextUrl.pathname === "/") && session) {
+    // Redirect authenticated users away from auth pages
+    if ((pathname.startsWith("/auth") || pathname === "/") && session) {
       const { data: userData } = await supabase
         .from('users')
         .select('role')
@@ -83,7 +77,9 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    console.error("Middleware error:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Middleware error:", error);
+    }
     return NextResponse.next();
   }
 }

@@ -4,7 +4,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Variables d\'environnement Supabase manquantes. Vérifiez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local')
+  throw new Error('Missing Supabase environment variables')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -14,6 +14,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true
   }
 })
+
+// Export auth service
+export { AuthService as authService } from './auth-service'
 
 // Types pour l'authentification
 export interface AuthUser {

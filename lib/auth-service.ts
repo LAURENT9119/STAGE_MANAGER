@@ -1,176 +1,170 @@
 
-import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export interface User {
-  id: string;
-  email: string;
-  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
-  full_name: string;
-  phone?: string;
-  avatar_url?: string;
-  created_at: string;
-  updated_at?: string;
+  id: string
+  email: string
+  role: 'admin' | 'hr' | 'finance' | 'tutor' | 'intern'
+  full_name?: string
+  avatar_url?: string
+  created_at: string
+  updated_at: string
 }
 
 export class AuthService {
-  async signIn(email: string, password: string): Promise<User | null> {
+  static async signIn(email: string, password: string) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
       if (data.user) {
+        // Récupérer les informations utilisateur depuis la table users
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
           .eq('id', data.user.id)
-          .single();
+          .single()
 
-        if (userError) {
-          // Si l'utilisateur n'existe pas dans la table users, le créer
-          const newUser: Partial<User> = {
-            id: data.user.id,
-            email: data.user.email!,
-            full_name: data.user.user_metadata?.full_name || data.user.email!,
-            role: data.user.user_metadata?.role || 'intern',
-          };
+        if (userError) throw userError
 
-          const { data: createdUser, error: createError } = await supabase
-            .from('users')
-            .insert(newUser)
-            .select()
-            .single();
-
-          if (createError) throw createError;
-
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('currentUser', JSON.stringify(createdUser));
-          }
-          return createdUser;
-        }
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('currentUser', JSON.stringify(userData));
-        }
-        return userData;
+        return { user: userData, session: data.session }
       }
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
 
-    return null;
+      return { user: null, session: null }
+    } catch (error) {
+      console.error('Error signing in:', error)
+      throw error
+    }
   }
 
-  async signUp(email: string, password: string, fullName: string, role: string): Promise<User | null> {
+  static async signUp(email: string, password: string, userData: Partial<User>) {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role,
-          },
-        }
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
       if (data.user) {
-        // Créer le profil utilisateur
-        const newUser: Partial<User> = {
-          id: data.user.id,
-          email: email,
-          full_name: fullName,
-          role: role as any,
-        };
-
-        const { data: createdUser, error: createError } = await supabase
+        // Créer l'utilisateur dans la table users
+        const { data: newUser, error: userError } = await supabase
           .from('users')
-          .insert(newUser)
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              role: userData.role || 'intern',
+              full_name: userData.full_name,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ])
           .select()
-          .single();
+          .single()
 
-        if (createError) throw createError;
+        if (userError) throw userError
 
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('currentUser', JSON.stringify(createdUser));
-        }
-        return createdUser;
+        return { user: newUser, session: data.session }
       }
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
-    }
 
-    return null;
+      return { user: null, session: null }
+    } catch (error) {
+      console.error('Error signing up:', error)
+      throw error
+    }
   }
 
-  async signOut(): Promise<void> {
+  static async signOut() {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('currentUser');
-      }
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
     } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
+      console.error('Error signing out:', error)
+      throw error
     }
   }
 
-  getCurrentUser(): User | null {
-    if (typeof window === 'undefined') return null;
+  static async getCurrentUser(): Promise<User | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) return null
 
-    const stored = localStorage.getItem('currentUser');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        localStorage.removeItem('currentUser');
-      }
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      if (error) throw error
+
+      return user
+    } catch (error) {
+      console.error('Error getting current user:', error)
+      return null
     }
-    return null;
   }
 
-  async refreshUser(userId: string): Promise<User | null> {
+  static async updateUser(id: string, updates: Partial<User>) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return data
+    } catch (error) {
+      console.error('Error updating user:', error)
+      throw error
+    }
+  }
+
+  static async deleteUser(id: string) {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw error
+    }
+  }
+
+  static async getUsers() {
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', userId)
-        .single();
+        .order('created_at', { ascending: false })
 
-      if (error) return null;
+      if (error) throw error
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('currentUser', JSON.stringify(data));
-      }
-      return data;
+      return data
     } catch (error) {
-      console.error('Refresh user error:', error);
-      return null;
+      console.error('Error getting users:', error)
+      throw error
     }
-  }
-
-  async getSession() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session;
-    } catch (error) {
-      console.error('Get session error:', error);
-      return null;
-    }
-  }
-
-  async onAuthStateChange(callback: (event: string, session: any) => void) {
-    return supabase.auth.onAuthStateChange(callback);
   }
 }
 
-export const authService = new AuthService();
+export const authService = AuthService
