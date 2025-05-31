@@ -19,7 +19,6 @@ const nextConfig = {
       }
     }
     
-    // Ignorer les modules optionnels qui causent des warnings
     config.resolve.fallback = {
       ...config.resolve.fallback,
       "bufferutil": false,
@@ -28,7 +27,6 @@ const nextConfig = {
     
     return config;
   },
-  // Configuration pour Replit
   async rewrites() {
     return []
   },
@@ -49,6 +47,13 @@ const nextConfig = {
       },
     ]
   },
+  // Production optimizations
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  poweredByHeader: false,
+  reactStrictMode: true,
 }
 
 module.exports = nextConfig

@@ -1,176 +1,155 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/hooks/use-toast"
-import { authService } from "@/lib/supabase"
-import { useAuthStore } from "@/store/auth-store"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { authService } from '@/lib/auth-service';
+import { useAppStore } from '@/store/app-store';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const router = useRouter()
-  const { toast } = useToast()
-  const setUser = useAuthStore(state => state.setUser)
+  const { setCurrentUser, setAuthenticated } = useAppStore();
+  const testUsers = authService.getTestUsers();
+  const isTestMode = process.env.NODE_ENV === 'development';
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const { data, error } = await authService.signIn(email, password)
-
-      if (error) {
-        setError(error.message)
-        return
-      }
-
-      if (data.user) {
-        // Récupérer le profil utilisateur complet
-        const profile = await authService.getUserProfile(data.user.id)
-
-        if (profile) {
-          setUser(profile)
-          toast({
-            title: "Connexion réussie",
-            description: `Bienvenue ${profile.full_name}!`,
-          })
-
-          // Rediriger vers le dashboard approprié
-          router.push(`/dashboard/${profile.role}`)
-        } else {
-          setError("Impossible de récupérer les informations du profil")
-        }
+      const user = await authService.signIn(email, password);
+      if (user) {
+        setCurrentUser(user);
+        setAuthenticated(true);
+        router.push(`/dashboard/${user.role}`);
+      } else {
+        setError('Identifiants invalides');
       }
     } catch (err) {
-      setError("Une erreur inattendue s'est produite")
-      console.error("Login error:", err)
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
-      setIsLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handleTestUserLogin = async (testEmail: string) => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = await authService.switchTestUser(testEmail);
+      if (user) {
+        setCurrentUser(user);
+        setAuthenticated(true);
+        router.push(`/dashboard/${user.role}`);
+      }
+    } catch (err) {
+      setError('Erreur lors du changement d\'utilisateur test');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Se connecter</h1>
-          <p className="text-sm text-muted-foreground">
-            Entrez vos identifiants pour accéder à votre espace
-          </p>
-        </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <Card>
-          <form onSubmit={handleSubmit}>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl text-center">Stage+</CardTitle>
-              <CardDescription className="text-center">
-                Plateforme de gestion des stagiaires
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Connexion
+            </CardTitle>
+            <CardDescription className="text-center">
+              Accédez à votre espace de gestion des stagiaires
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="votre.email@entreprise.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={isLoading}
+                  placeholder="votre.email@exemple.com"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Votre mot de passe"
+                />
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connexion...
-                  </>
-                ) : (
-                  "Se connecter"
-                )}
+                {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
+            </form>
 
-              <div className="text-center text-sm">
-                <Link 
-                  href="/auth/register" 
-                  className="text-primary hover:underline"
-                >
-                  Pas encore de compte ? S'inscrire
-                </Link>
+            {isTestMode && testUsers.length > 0 && (
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Badge variant="secondary">MODE TEST</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Comptes de démonstration
+                  </span>
+                </div>
+
+                <div className="grid gap-2">
+                  {testUsers.map((user) => (
+                    <Button
+                      key={user.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTestUserLogin(user.email)}
+                      disabled={loading}
+                      className="flex justify-between"
+                    >
+                      <span>{user.full_name}</span>
+                      <Badge variant="secondary" className="ml-2">
+                        {user.role}
+                      </Badge>
+                    </Button>
+                  ))}
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-2">
+                  En mode développement, vous pouvez utiliser ces comptes test.
+                  Mot de passe: test123
+                </p>
               </div>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {/* Comptes de test */}
-        <Card className="bg-muted/50">
-          <CardHeader>
-            <CardTitle className="text-sm">Comptes de test</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs">
-            <div><strong>Admin:</strong> admin@test.com / password123</div>
-            <div><strong>RH:</strong> hr@test.com / password123</div>
-            <div><strong>Tuteur:</strong> tutor@test.com / password123</div>
-            <div><strong>Stagiaire:</strong> intern@test.com / password123</div>
-            <div><strong>Finance:</strong> finance@test.com / password123</div>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
