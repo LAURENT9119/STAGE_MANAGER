@@ -3,6 +3,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
     optimizePackageImports: ["@supabase/supabase-js"],
+    serverActions: true,
   },
   images: {
     domains: ['ljboqtmrferkafwfanva.supabase.co'],
@@ -27,9 +28,7 @@ const nextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
-  experimental: {
-    serverActions: true,
-  },
+  
   async headers() {
     return [
       {

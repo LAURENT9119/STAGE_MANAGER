@@ -160,13 +160,31 @@ export class AuthService {
   }
 
   // Mode développement - utilisateurs de test (uniquement en dev)
-  const testUsers = process.env.NODE_ENV === 'development' ? [
-    { email: 'admin@company.com', password: 'test123', role: 'admin' },
-    { email: 'hr@company.com', password: 'test123', role: 'hr' },
-    { email: 'tutor@company.com', password: 'test123', role: 'tutor' },
-    { email: 'intern@company.com', password: 'test123', role: 'intern' },
-    { email: 'finance@company.com', password: 'test123', role: 'finance' },
-  ] : [];
+  getTestUsers(): User[] {
+    if (process.env.NODE_ENV !== 'development') return [];
+    
+    return [
+      { id: '1', email: 'admin@company.com', full_name: 'Admin Test', role: 'admin', created_at: new Date().toISOString() },
+      { id: '2', email: 'hr@company.com', full_name: 'HR Test', role: 'hr', created_at: new Date().toISOString() },
+      { id: '3', email: 'tutor@company.com', full_name: 'Tutor Test', role: 'tutor', created_at: new Date().toISOString() },
+      { id: '4', email: 'intern@company.com', full_name: 'Intern Test', role: 'intern', created_at: new Date().toISOString() },
+      { id: '5', email: 'finance@company.com', full_name: 'Finance Test', role: 'finance', created_at: new Date().toISOString() },
+    ];
+  }
+
+  async switchTestUser(email: string): Promise<User | null> {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    const testUsers = this.getTestUsers();
+    const user = testUsers.find(u => u.email === email);
+    
+    if (user && typeof window !== 'undefined') {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      return user;
+    }
+    
+    return null;
+  }
 }
 
 export const authService = new AuthService();
