@@ -38,7 +38,7 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
     <div className="space-y-6">
       <UserWelcome user={{
         ...user,
-        avatar: userData?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+        avatar: user.user_metadata?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
       }} />
 
       {/* Statistiques rapides */}
