@@ -1,88 +1,11 @@
 
-import { createBrowserClient } from '@supabase/ssr';
-import { AuthService } from './auth-service';
+import { createClient } from './supabase/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// Client-side browser client only
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
-
-// Export browser client function
-export { createClient as createBrowserClient } from './supabase/client';
-
-export const authService = AuthService;
-export { AuthService };
-
-// Types pour l'authentification
-export interface AuthUser {
-  id: string
-  email: string
-  user_metadata: {
-    full_name?: string
-    role?: string
-  }
-}
-
-export interface UserProfile {
-  id: string
-  email: string
-  full_name: string
-  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance'
-  avatar_url?: string
-  phone?: string
-  address?: string
-  created_at: string
-  updated_at: string
-}
-
-export interface User extends UserProfile {}
-
-export interface Intern {
-  id: string
-  user_id: string
-  tutor_id: string
-  department: string
-  start_date: string
-  end_date: string
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled' | 'terminated'
-  university: string
-  level: string
-  contract_type: string
-  project?: string
-  progress?: number
-  evaluation_score?: number
-  notes?: string
-  created_at: string
-  updated_at: string
-  user?: UserProfile
-  tutor?: UserProfile
-}
-
-export interface Request {
-  id: string
-  intern_id: string
-  type: 'leave' | 'extension' | 'evaluation' | 'document' | 'support'
-  status: 'pending' | 'approved' | 'rejected' | 'completed'
-  title: string
-  description: string
-  start_date?: string
-  end_date?: string
-  documents?: string[]
-  notes?: string
-  created_at: string
-  updated_at: string
-  intern?: Intern
-}
-
-// Services pour les entités (client-side only)
-export const internService = {
+// Server-side services that use server client
+export const serverInternService = {
   async getAll() {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('interns')
         .select(`
@@ -99,6 +22,7 @@ export const internService = {
 
   async getByUser(userId: string) {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('interns')
         .select(`
@@ -117,6 +41,7 @@ export const internService = {
 
   async create(internData: any) {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('interns')
         .insert(internData)
@@ -129,9 +54,10 @@ export const internService = {
   }
 }
 
-export const requestService = {
+export const serverRequestService = {
   async getAll() {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('requests')
         .select(`
@@ -151,6 +77,7 @@ export const requestService = {
 
   async getByIntern(internId: string) {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('requests')
         .select('*')
@@ -165,6 +92,7 @@ export const requestService = {
 
   async create(requestData: any) {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('requests')
         .insert(requestData)
