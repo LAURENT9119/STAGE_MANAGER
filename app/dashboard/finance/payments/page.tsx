@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainNav } from "@/components/layout/main-nav";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -410,7 +410,7 @@ export default function PaymentsPage() {
       };
 
       setPayments(prev => [payment, ...prev]);
-      
+
       toast({
         title: "Succès",
         description: "Gratification créée avec succès",
@@ -832,6 +832,173 @@ export default function PaymentsPage() {
         </main>
       </div>
       <SiteFooter />
+    </div>
+  );
+}
+"use client";
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Payment {
+  id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  intern: {
+    first_name: string;
+    last_name: string;
+  };
+  request?: {
+    title: string;
+  };
+}
+
+export default function PaymentsPage() {
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          intern:interns(first_name, last_name),
+          request:requests(title)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPayments(data || []);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = payment.intern.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.intern.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.amount.toString().includes(searchTerm);
+    constmatchesStatus = statusFilter === "all" || payment.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Paiements</h1>
+          <p className="text-muted-foreground">
+            Gestion des paiements des stagiaires
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Rechercher par nom ou montant..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="pending">En attente</SelectItem>
+            <SelectItem value="completed">Complété</SelectItem>
+            <SelectItem value="failed">Échoué</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Liste des paiements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Stagiaire</TableHead>
+                <TableHead>Demande</TableHead>
+                <TableHead>Montant</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPayments.map((payment) => (
+                <TableRow key={payment.id}>
+                  <TableCell>
+                    {payment.intern.first_name} {payment.intern.last_name}
+                  </TableCell>
+                  <TableCell>{payment.request?.title || 'N/A'}</TableCell>
+                  <TableCell>{payment.amount} €</TableCell>
+                  <TableCell>
+                    <Badge variant={
+                      payment.status === 'completed' ? 'default' :
+                      payment.status === 'pending' ? 'secondary' : 'destructive'
+                    }>
+                      {payment.status === 'completed' ? 'Complété' :
+                       payment.status === 'pending' ? 'En attente' : 'Échoué'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(payment.created_at).toLocaleDateString('fr-FR')}
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm">
+                      Voir
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CreateRequestDialog } from "@/components/requests/create-request-dialog";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,19 @@ import { Filter, Search, Plus, FileText, Clock } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { useRequests } from "@/hooks/use-requests";
 import { useInterns } from "@/hooks/use-interns";
+
+interface Request {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  status: string;
+  submitted_at: string;
+  reviewer: {
+    full_name: string;
+  } | null;
+  reviewed_at: string | null;
+}
 
 export default function InternRequestsPage() {
   const { user } = useAuthStore();

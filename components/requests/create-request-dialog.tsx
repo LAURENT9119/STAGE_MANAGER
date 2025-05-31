@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -67,7 +66,7 @@ export function CreateRequestDialog({ onRequestCreated }: CreateRequestDialogPro
       setIsLoading(true);
 
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast({
           title: "Erreur",
@@ -116,9 +115,9 @@ export function CreateRequestDialog({ onRequestCreated }: CreateRequestDialogPro
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Créer une nouvelle demande</DialogTitle>
-        </DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Créer une nouvelle demande</DialogTitle>
+          </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
