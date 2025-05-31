@@ -36,7 +36,10 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
 
   return (
     <div className="space-y-6">
-      <UserWelcome user={user} />
+      <UserWelcome user={{
+        ...user,
+        avatar: userData?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+      }} />
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
