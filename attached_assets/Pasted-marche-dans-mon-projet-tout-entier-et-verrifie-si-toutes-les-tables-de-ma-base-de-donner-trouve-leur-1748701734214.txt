@@ -1,0 +1,37 @@
+marche dans mon projet tout entier et verrifie si toutes les tables de ma base de donner trouve leurs entrer dans mon frontend si reelement il interagisse et si c'est ainsi que mon frontend est , et change tout en utilisant unique ment ceci
+donc zustand pour les etat et arrange pour qu'il n'est auccun prbleme de build sur versel
+
+• Framework : Nextjs (TypeScript)
+• Librairies UI : Shadcn/UI + TailwindCSS
+• State management : Zustand
+• BaaS : Supabase (Base de données PostgreSQL + Authetification + Stockage des fichiers)
+• Hébergement et CI/CD : Vercel
+
+j'ai besoin de faire des tests en localhost mais cela est impossible pour le moment car supabase verrifie chaque mail je veux que tu creer une alternative pourque je puisse me balader sur chaque profile et verrifier si tout donne bien en faissant des requettes
+pourquoi ceci ./middleware.ts:1:0
+Module not found: Can't resolve '@supabase/auth-helpers-nextjs'
+
+1 | import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+2 | import { NextResponse } from "next/server";
+3 | import type { NextRequest } from "next/server";
+4 |
+
+https://nextjs.org/docs/messages/module-not-found
+
+quand je me connecte a ces pages
+j'ai ces erreur pour chaque page alors que je devais avoir acces au differente page en fonction du profile choisi 404
+This page could not be found. donc d'apres toi quand tu analyse tout le projet et toutes les pages c'est bon ? donc tu as arrange aussi ceci TypeError: Cannot read properties of undefined (reading 'interns')
+Source
+hooks/use-interns.ts (43:23) @ interns
+41 | return {
+42 | interns: filteredInterns,
+43 | loading: isLoading.interns,
+| ^
+44 | error: errors.interns,
+45 | refetch: fetchInterns,
+46 | createIntern,
+Call Stack
+useInterns
+app/dashboard/[role]/page.tsx (25:57)
+Show collapsed frames
+donc mon projet n'as plus aucune erreurs ? maintenat que tout est ok tu peux maintenant reconnecter tout les element avec ma base de donner pour que le milieux de productions et un deploiement sur versel et les dashaboard je veux que toutes les donner statistique soit reel , je veux que pour chaque utilisateur les pages soit relier , pour chaque fonctionnaliter , chaque bouton chaque element du backent et du frontend verrifie si les deux sont identique et si cela ne vas pas faire des soucis de colision pendant la production , corrige et adapte pour la production retire le mode devellopement , et insert des utilisateur dans ma base de donner pour les utilisateur deja identifier
