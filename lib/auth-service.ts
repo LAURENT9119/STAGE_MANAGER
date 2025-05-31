@@ -1,37 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export class AuthService {
   static async signIn(email: string, password: string) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
       if (error) throw error;
-
-      if (data.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (userError) throw userError;
-
-        return {
-          user: data.user,
-          userData,
-          session: data.session,
-        };
-      }
-
-      return { user: null, userData: null, session: null };
+      return data;
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -43,22 +25,11 @@ export class AuthService {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: userData
+        }
       });
-
       if (error) throw error;
-
-      if (data.user) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            ...userData,
-          });
-
-        if (insertError) throw insertError;
-      }
-
       return data;
     } catch (error) {
       console.error('Sign up error:', error);

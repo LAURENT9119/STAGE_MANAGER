@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { AuthService } from './auth-service';
 
@@ -177,7 +178,3 @@ export const requestService = {
     }
   }
 }
-```
-
-```
-</replit_final_file>
