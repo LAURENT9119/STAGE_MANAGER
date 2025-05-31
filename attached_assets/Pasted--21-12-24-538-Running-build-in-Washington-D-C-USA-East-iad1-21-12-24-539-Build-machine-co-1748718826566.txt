@@ -1,0 +1,142 @@
+[21:12:24.538] Running build in Washington, D.C., USA (East) – iad1
+[21:12:24.539] Build machine configuration: 2 cores, 8 GB
+[21:12:24.560] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: 9b33bec)
+[21:12:24.753] Previous build caches not available
+[21:12:30.277] Cloning completed: 5.717s
+[21:12:30.627] Running "vercel build"
+[21:12:31.076] Vercel CLI 42.2.0
+[21:12:31.378] Installing dependencies...
+[21:12:44.765] 
+[21:12:44.766] added 550 packages in 13s
+[21:12:44.766] 
+[21:12:44.766] 157 packages are looking for funding
+[21:12:44.766]   run `npm fund` for details
+[21:12:44.810] Detected Next.js version: 13.5.1
+[21:12:44.812] Running "npm run build"
+[21:12:44.940] 
+[21:12:44.941] > nextjs@0.1.0 build
+[21:12:44.941] > next build
+[21:12:44.941] 
+[21:12:45.523]    Creating an optimized production build...
+[21:13:03.966] Browserslist: caniuse-lite is outdated. Please run:
+[21:13:03.967]   npx update-browserslist-db@latest
+[21:13:03.967]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[21:13:10.318] Browserslist: caniuse-lite is outdated. Please run:
+[21:13:10.319]   npx browserslist@latest --update-db
+[21:13:10.319]   Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[21:13:11.939]  ⚠ Compiled with warnings
+[21:13:11.939] 
+[21:13:11.940] ./store/auth-store.ts
+[21:13:11.940] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.940] 
+[21:13:11.940] Import trace for requested module:
+[21:13:11.940] ./store/auth-store.ts
+[21:13:11.940] ./app/dashboard/layout.tsx
+[21:13:11.940] 
+[21:13:11.940] ./store/auth-store.ts
+[21:13:11.940] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.940] 
+[21:13:11.940] Import trace for requested module:
+[21:13:11.940] ./store/auth-store.ts
+[21:13:11.941] ./app/dashboard/layout.tsx
+[21:13:11.941] 
+[21:13:11.941] ./store/auth-store.ts
+[21:13:11.941] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.941] 
+[21:13:11.941] Import trace for requested module:
+[21:13:11.941] ./store/auth-store.ts
+[21:13:11.941] ./app/dashboard/layout.tsx
+[21:13:11.941] 
+[21:13:11.941] ./store/auth-store.ts
+[21:13:11.941] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.941] 
+[21:13:11.941] Import trace for requested module:
+[21:13:11.941] ./store/auth-store.ts
+[21:13:11.941] ./app/dashboard/layout.tsx
+[21:13:11.942] 
+[21:13:11.942] ./store/auth-store.ts
+[21:13:11.942] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.942] 
+[21:13:11.942] Import trace for requested module:
+[21:13:11.942] ./store/auth-store.ts
+[21:13:11.942] ./app/dashboard/layout.tsx
+[21:13:11.942] 
+[21:13:11.943] ./store/auth-store.ts
+[21:13:11.943] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.943] 
+[21:13:11.943] Import trace for requested module:
+[21:13:11.943] ./store/auth-store.ts
+[21:13:11.943] ./app/auth/login/page.tsx
+[21:13:11.943] 
+[21:13:11.943] ./store/auth-store.ts
+[21:13:11.943] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.944] 
+[21:13:11.944] Import trace for requested module:
+[21:13:11.944] ./store/auth-store.ts
+[21:13:11.944] ./app/auth/login/page.tsx
+[21:13:11.944] 
+[21:13:11.944] ./store/auth-store.ts
+[21:13:11.944] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.944] 
+[21:13:11.944] Import trace for requested module:
+[21:13:11.945] ./store/auth-store.ts
+[21:13:11.945] ./app/auth/login/page.tsx
+[21:13:11.945] 
+[21:13:11.949] ./store/auth-store.ts
+[21:13:11.949] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.949] 
+[21:13:11.950] Import trace for requested module:
+[21:13:11.950] ./store/auth-store.ts
+[21:13:11.950] ./app/auth/login/page.tsx
+[21:13:11.950] 
+[21:13:11.950] ./store/auth-store.ts
+[21:13:11.950] Attempted import error: 'authService' is not exported from '@/lib/auth-service' (imported as 'authService').
+[21:13:11.950] 
+[21:13:11.950] Import trace for requested module:
+[21:13:11.950] ./store/auth-store.ts
+[21:13:11.951] ./app/auth/login/page.tsx
+[21:13:11.951] 
+[21:13:11.951] ./node_modules/ws/lib/buffer-util.js
+[21:13:11.951] Module not found: Can't resolve 'bufferutil' in '/vercel/path0/node_modules/ws/lib'
+[21:13:11.951] 
+[21:13:11.951] Import trace for requested module:
+[21:13:11.952] ./node_modules/ws/lib/buffer-util.js
+[21:13:11.952] ./node_modules/ws/lib/websocket.js
+[21:13:11.952] ./node_modules/ws/index.js
+[21:13:11.952] ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+[21:13:11.952] ./node_modules/@supabase/realtime-js/dist/main/index.js
+[21:13:11.952] ./node_modules/@supabase/supabase-js/dist/main/index.js
+[21:13:11.952] ./lib/auth-service.ts
+[21:13:11.953] ./lib/supabase.ts
+[21:13:11.953] ./app/dashboard/admin/settings/page.tsx
+[21:13:11.953] 
+[21:13:11.953] ./node_modules/ws/lib/validation.js
+[21:13:11.953] Module not found: Can't resolve 'utf-8-validate' in '/vercel/path0/node_modules/ws/lib'
+[21:13:11.953] 
+[21:13:11.953] Import trace for requested module:
+[21:13:11.953] ./node_modules/ws/lib/validation.js
+[21:13:11.953] ./node_modules/ws/lib/websocket.js
+[21:13:11.953] ./node_modules/ws/index.js
+[21:13:11.953] ./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+[21:13:11.954] ./node_modules/@supabase/realtime-js/dist/main/index.js
+[21:13:11.954] ./node_modules/@supabase/supabase-js/dist/main/index.js
+[21:13:11.954] ./lib/auth-service.ts
+[21:13:11.954] ./lib/supabase.ts
+[21:13:11.954] ./app/dashboard/admin/settings/page.tsx
+[21:13:11.954] 
+[21:13:11.955]    Linting and checking validity of types...
+[21:13:23.638] Failed to compile.
+[21:13:23.639] 
+[21:13:23.639] ./app/auth/register/page.tsx:13:10
+[21:13:23.639] Type error: '"@/lib/auth-service"' has no exported member named 'authService'. Did you mean 'AuthService'?
+[21:13:23.639] 
+[21:13:23.639] [0m [90m 11 | [39m[36mimport[39m { [33mAlert[39m[33m,[39m [33mAlertDescription[39m } [36mfrom[39m [32m'@/components/ui/alert'[39m[33m;[39m[0m
+[21:13:23.640] [0m [90m 12 | [39m[36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+[21:13:23.640] [0m[31m[1m>[22m[39m[90m 13 | [39m[36mimport[39m { authService } [36mfrom[39m [32m'@/lib/auth-service'[39m[33m;[39m[0m
+[21:13:23.640] [0m [90m    | [39m         [31m[1m^[22m[39m[0m
+[21:13:23.640] [0m [90m 14 | [39m[0m
+[21:13:23.640] [0m [90m 15 | [39m[36mexport[39m [36mdefault[39m [36mfunction[39m [33mRegisterPage[39m() {[0m
+[21:13:23.640] [0m [90m 16 | [39m  [36mconst[39m [email[33m,[39m setEmail] [33m=[39m useState([32m''[39m)[33m;[39m[0m
+[21:13:23.739] Error: Command "npm run build" exited with 1
+[21:13:24.018] 
+[21:13:27.006] Exiting build container
