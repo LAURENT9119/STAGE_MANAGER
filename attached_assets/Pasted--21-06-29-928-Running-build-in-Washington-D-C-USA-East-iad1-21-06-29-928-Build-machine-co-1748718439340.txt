@@ -1,0 +1,53 @@
+[21:06:29.928] Running build in Washington, D.C., USA (East) – iad1
+[21:06:29.928] Build machine configuration: 2 cores, 8 GB
+[21:06:29.976] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: bb8cc5a)
+[21:06:30.147] Previous build caches not available
+[21:06:32.574] Cloning completed: 2.598s
+[21:06:33.080] Running "vercel build"
+[21:06:34.655] Vercel CLI 42.2.0
+[21:06:34.948] Installing dependencies...
+[21:06:47.400] 
+[21:06:47.401] added 550 packages in 12s
+[21:06:47.401] 
+[21:06:47.402] 157 packages are looking for funding
+[21:06:47.402]   run `npm fund` for details
+[21:06:47.463] Detected Next.js version: 13.5.1
+[21:06:47.464] Running "npm run build"
+[21:06:47.578] 
+[21:06:47.579] > nextjs@0.1.0 build
+[21:06:47.579] > next build
+[21:06:47.580] 
+[21:06:48.034] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[21:06:48.035] This information is used to shape Next.js' roadmap and prioritize features.
+[21:06:48.036] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[21:06:48.036] https://nextjs.org/telemetry
+[21:06:48.036] 
+[21:06:48.103]    Creating an optimized production build...
+[21:07:04.783] Failed to compile.
+[21:07:04.784] 
+[21:07:04.785] ./lib/supabase/server.ts
+[21:07:04.785] ReactServerComponentsError:
+[21:07:04.785] 
+[21:07:04.785] You're importing a component that needs next/headers. That only works in a Server Component but one of its parents is marked with "use client", so it's a Client Component.
+[21:07:04.785] Learn more: https://nextjs.org/docs/getting-started/react-essentials
+[21:07:04.785] 
+[21:07:04.786]    ,-[[36;1;4m/vercel/path0/lib/supabase/server.ts[0m:1:1]
+[21:07:04.786]  [2m1[0m | 
+[21:07:04.786]  [2m2[0m | import { createServerClient, type CookieOptions } from '@supabase/ssr';
+[21:07:04.786]  [2m3[0m | import { cookies } from 'next/headers';
+[21:07:04.786]    : [31;1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[21:07:04.786]  [2m4[0m | 
+[21:07:04.786]  [2m5[0m | export function createClient() {
+[21:07:04.787]  [2m6[0m |   const cookieStore = cookies();
+[21:07:04.787]    `----
+[21:07:04.787] 
+[21:07:04.787] One of these is marked as a client entry with "use client":
+[21:07:04.787]   ./lib/supabase/server.ts
+[21:07:04.787]   ./lib/supabase.ts
+[21:07:04.787]   ./app/dashboard/admin/settings/page.tsx
+[21:07:04.787] 
+[21:07:04.787] 
+[21:07:04.788] > Build failed because of webpack errors
+[21:07:04.833] Error: Command "npm run build" exited with 1
+[21:07:05.128] 
+[21:07:08.082] Exiting build container
