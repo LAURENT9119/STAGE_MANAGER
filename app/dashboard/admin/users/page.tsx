@@ -1,174 +1,102 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MainNav } from "@/components/layout/main-nav";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Search, 
-  UserPlus, 
-  MoreHorizontal, 
-  Edit,
-  Trash2,
-  Shield,
-  Mail,
-  Phone
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/store/auth-store';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MainNav } from '@/components/layout/main-nav';
+import { DashboardNav } from '@/components/layout/dashboard-nav';
+import { SiteFooter } from '@/components/layout/site-footer';
+import { supabase } from '@/lib/supabase';
+import { Trash2, UserPlus, Search, Filter } from 'lucide-react';
 
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
-  avatar_url?: string;
-  phone?: string;
+  full_name?: string;
+  role: string;
   created_at: string;
   last_sign_in_at?: string;
 }
 
 export default function AdminUsersPage() {
+  const { user } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
-    setIsLoading(true);
     try {
-      // Mock data for demonstration
-      const mockUsers: User[] = [
-        {
-          id: "1",
-          email: "admin@example.com",
-          full_name: "Admin System",
-          role: "admin",
-          phone: "+33 1 23 45 67 89",
-          created_at: "2024-01-01T00:00:00Z",
-          last_sign_in_at: "2024-01-15T10:30:00Z"
-        },
-        {
-          id: "2",
-          email: "hr@example.com",
-          full_name: "Marie Dubois",
-          role: "hr",
-          phone: "+33 1 23 45 67 90",
-          created_at: "2024-01-05T00:00:00Z",
-          last_sign_in_at: "2024-01-15T09:15:00Z"
-        },
-        {
-          id: "3",
-          email: "tutor@example.com",
-          full_name: "Jean Martin",
-          role: "tutor",
-          phone: "+33 1 23 45 67 91",
-          created_at: "2024-01-10T00:00:00Z",
-          last_sign_in_at: "2024-01-14T16:45:00Z"
-        },
-        {
-          id: "4",
-          email: "intern@example.com",
-          full_name: "Sophie Lambert",
-          role: "intern",
-          phone: "+33 1 23 45 67 92",
-          created_at: "2024-01-12T00:00:00Z",
-          last_sign_in_at: "2024-01-15T08:20:00Z"
-        }
-      ];
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setUsers(mockUsers);
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les utilisateurs",
-        variant: "destructive",
-      });
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setUsers(users.filter(u => u.id !== userId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
     }
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-
+    const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
 
-  const getRoleBadge = (role: string) => {
-    const variants = {
-      admin: "destructive",
-      hr: "default",
-      tutor: "secondary",
-      intern: "outline",
-      finance: "secondary"
-    } as const;
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'hr': return 'bg-blue-100 text-blue-800';
+      case 'tutor': return 'bg-green-100 text-green-800';
+      case 'intern': return 'bg-yellow-100 text-yellow-800';
+      case 'finance': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-    const labels = {
-      admin: "Admin",
-      hr: "RH",
-      tutor: "Tuteur",
-      intern: "Stagiaire",
-      finance: "Finance"
-    };
-
+  if (!user || user.role !== 'admin') {
     return (
-      <Badge variant={variants[role as keyof typeof variants]}>
-        {labels[role as keyof typeof labels]}
-      </Badge>
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Accès non autorisé. Seuls les administrateurs peuvent accéder à cette page.
+          </AlertDescription>
+        </Alert>
+      </div>
     );
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -179,208 +107,112 @@ export default function AdminUsersPage() {
           <DashboardNav />
         </aside>
 
-        <main className="relative py-6 lg:gap-10 lg:py-8">
-          <div className="mx-auto w-full min-w-0">
-            <div className="flex flex-col space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
-                  <p className="text-muted-foreground">
-                    Gérez les comptes utilisateurs et leurs permissions
-                  </p>
-                </div>
-                <Button>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Nouvel Utilisateur
-                </Button>
-              </div>
-
-              {/* Stats */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Utilisateurs
-                    </CardTitle>
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{users.length}</div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Administrateurs
-                    </CardTitle>
-                    <Shield className="h-4 w-4 text-destructive" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {users.filter(u => u.role === 'admin').length}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Stagiaires
-                    </CardTitle>
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {users.filter(u => u.role === 'intern').length}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Tuteurs
-                    </CardTitle>
-                    <Shield className="h-4 w-4 text-secondary" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {users.filter(u => u.role === 'tutor').length}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Filters */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Filtres</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                      <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Rechercher par nom ou email..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-8"
-                        />
-                      </div>
-                    </div>
-
-                    <Select value={roleFilter} onValueChange={setRoleFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Filtrer par rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tous les rôles</SelectItem>
-                        <SelectItem value="admin">Administrateur</SelectItem>
-                        <SelectItem value="hr">RH</SelectItem>
-                        <SelectItem value="tutor">Tuteur</SelectItem>
-                        <SelectItem value="intern">Stagiaire</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Users Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Liste des Utilisateurs</CardTitle>
-                  <CardDescription>
-                    {filteredUsers.length} utilisateur(s) trouvé(s)
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Utilisateur</TableHead>
-                        <TableHead>Rôle</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Créé le</TableHead>
-                        <TableHead>Dernière connexion</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar>
-                                <AvatarImage src={user.avatar_url} />
-                                <AvatarFallback>
-                                  {getInitials(user.full_name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{user.full_name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {user.email}
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {getRoleBadge(user.role)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {user.phone && (
-                                <div className="flex items-center text-sm">
-                                  <Phone className="h-3 w-3 mr-1" />
-                                  {user.phone}
-                                </div>
-                              )}
-                              <div className="flex items-center text-sm">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {user.email}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(user.created_at)}
-                          </TableCell>
-                          <TableCell>
-                            {user.last_sign_in_at ? formatDate(user.last_sign_in_at) : 'Jamais'}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive">
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+        <main className="flex w-full flex-col overflow-hidden py-6">
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Gestion des utilisateurs</h1>
+              <p className="text-muted-foreground">
+                Gérez tous les utilisateurs de la plateforme
+              </p>
             </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Filtres et recherche */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtres et recherche</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Rechercher par email ou nom..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="px-3 py-2 border rounded-md"
+                  >
+                    <option value="all">Tous les rôles</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="hr">RH</option>
+                    <option value="tutor">Tuteur</option>
+                    <option value="intern">Stagiaire</option>
+                    <option value="finance">Finance</option>
+                  </select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Liste des utilisateurs */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Utilisateurs ({filteredUsers.length})</CardTitle>
+                <CardDescription>
+                  Liste de tous les utilisateurs enregistrés
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun utilisateur trouvé
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredUsers.map((userItem) => (
+                      <div key={userItem.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-medium">{userItem.full_name || 'Nom non défini'}</h3>
+                            <Badge className={getRoleBadgeColor(userItem.role)}>
+                              {userItem.role}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{userItem.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Créé le {new Date(userItem.created_at).toLocaleDateString('fr-FR')}
+                            {userItem.last_sign_in_at && (
+                              <>  • Dernière connexion: {new Date(userItem.last_sign_in_at).toLocaleDateString('fr-FR')}</>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteUser(userItem.id)}
+                            disabled={userItem.id === user.id}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>
 
       <SiteFooter />
-    </div>>
+    </div>
   );
 }

@@ -109,51 +109,6 @@ export async function middleware(req: NextRequest) {
         .eq('id', user.id)
         .single();
 
-    // Protected routes
-    const protectedRoutes = ['/dashboard'];
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-
-    // Redirect unauthenticated users to login
-    if (isProtectedRoute && !user) {
-      return NextResponse.redirect(new URL('/auth/login', req.url));
-    }
-
-    // Role-based access control
-    if (user && isProtectedRoute) {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      const userRole = userData?.role;
-
-      const roleRoutes = {
-        admin: ['/dashboard/admin'],
-        hr: ['/dashboard/hr'],
-        tutor: ['/dashboard/tutor'],
-        intern: ['/dashboard/intern'],
-        finance: ['/dashboard/finance']
-      };
-
-      // Check if user is trying to access unauthorized routes
-      for (const [role, routes] of Object.entries(roleRoutes)) {
-        for (const route of routes) {
-          if (pathname.startsWith(route) && userRole !== role && userRole !== "admin") {
-            return NextResponse.redirect(new URL(`/dashboard/${userRole}`, req.url));
-          }
-        }
-      }
-    }
-
-    // Redirect authenticated users away from auth pages
-    if ((pathname.startsWith("/auth") || pathname === "/") && user) {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
       if (userData) {
         return NextResponse.redirect(new URL(`/dashboard/${userData.role}`, req.url));
       }
