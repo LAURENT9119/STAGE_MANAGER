@@ -6,30 +6,28 @@ const nextConfig = {
   },
   images: {
     domains: ['ljboqtmrferkafwfanva.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
   env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+    NEXT_PUBLIC_APP_URL: process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      config.devtool = 'eval-source-map';
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-      }
-    }
-    
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      "bufferutil": false,
-      "utf-8-validate": false,
-    };
-    
-    return config;
+  // Production optimizations
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-  async rewrites() {
-    return []
-  },
+  poweredByHeader: false,
+  reactStrictMode: true,
+  output: 'standalone',
   async headers() {
     return [
       {
@@ -43,17 +41,14 @@ const nextConfig = {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
         ],
       },
     ]
   },
-  // Production optimizations
-  swcMinify: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-  poweredByHeader: false,
-  reactStrictMode: true,
 }
 
 module.exports = nextConfig

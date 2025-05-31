@@ -1,120 +1,82 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { ProductionService, ProductionIntern } from '@/lib/production-service';
+import { useAppStore } from '@/store/app-store';
 
-interface Intern {
-  id: string;
-  email: string;
-  full_name: string;
-  phone?: string;
-  company?: string;
-  start_date?: string;
-  end_date?: string;
-  status: 'pending' | 'active' | 'completed' | 'cancelled';
-  tutor_id?: string;
-  created_at: string;
-}
-
-interface UseInternsReturn {
-  interns: Intern[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  createIntern: (internData: Partial<Intern>) => Promise<void>;
-  updateIntern: (id: string, updates: Partial<Intern>) => Promise<void>;
-  deleteIntern: (id: string) => Promise<void>;
-}
-
-export function useInterns(): UseInternsReturn {
-  const [interns, setInterns] = useState<Intern[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useInterns = () => {
+  const {
+    interns,
+    setInterns,
+    setInternsLoading,
+    setInternsError,
+    loading,
+    errors,
+  } = useAppStore();
 
   const fetchInterns = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const { data, error: fetchError } = await supabase
-        .from('interns')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (fetchError) throw fetchError;
-      
-      setInterns(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      setInterns([]);
+      setInternsLoading(true);
+      setInternsError(null);
+      const data = await ProductionService.getAllInterns();
+      setInterns(data);
+    } catch (error) {
+      console.error('Error fetching interns:', error);
+      setInternsError(error instanceof Error ? error.message : 'Erreur lors du chargement des stagiaires');
     } finally {
-      setLoading(false);
+      setInternsLoading(false);
     }
   };
 
-  const createIntern = async (internData: Partial<Intern>) => {
+  const fetchInternsByTutor = async (tutorId: string) => {
     try {
-      const { data, error: createError } = await supabase
-        .from('interns')
-        .insert([internData])
-        .select()
-        .single();
-
-      if (createError) throw createError;
-      
-      setInterns(prev => [data, ...prev]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la création');
-      throw err;
+      setInternsLoading(true);
+      setInternsError(null);
+      const data = await ProductionService.getInternsByTutor(tutorId);
+      setInterns(data);
+    } catch (error) {
+      console.error('Error fetching tutor interns:', error);
+      setInternsError(error instanceof Error ? error.message : 'Erreur lors du chargement des stagiaires');
+    } finally {
+      setInternsLoading(false);
     }
   };
 
-  const updateIntern = async (id: string, updates: Partial<Intern>) => {
+  const createIntern = async (internData: Omit<ProductionIntern, 'id' | 'user' | 'tutor'>) => {
     try {
-      const { data, error: updateError } = await supabase
-        .from('interns')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-      
-      setInterns(prev => prev.map(intern => 
-        intern.id === id ? { ...intern, ...data } : intern
-      ));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
-      throw err;
+      const newIntern = await ProductionService.createIntern(internData);
+      setInterns([newIntern, ...interns]);
+      return newIntern;
+    } catch (error) {
+      console.error('Error creating intern:', error);
+      throw error;
     }
   };
 
-  const deleteIntern = async (id: string) => {
+  const updateIntern = async (id: string, updates: Partial<ProductionIntern>) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('interns')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) throw deleteError;
-      
-      setInterns(prev => prev.filter(intern => intern.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la suppression');
-      throw err;
+      const updatedIntern = await ProductionService.updateIntern(id, updates);
+      setInterns(interns.map(intern => intern.id === id ? updatedIntern : intern));
+      return updatedIntern;
+    } catch (error) {
+      console.error('Error updating intern:', error);
+      throw error;
     }
   };
 
   useEffect(() => {
-    fetchInterns();
+    if (interns.length === 0 && !loading.interns) {
+      fetchInterns();
+    }
   }, []);
 
+  const filteredInterns = interns.filter(intern => intern !== undefined);
+
   return {
-    interns,
-    loading,
-    error,
+    interns: filteredInterns,
+    loading: loading.interns,
+    error: errors.interns,
     refetch: fetchInterns,
+    fetchInternsByTutor,
     createIntern,
     updateIntern,
-    deleteIntern,
   };
-}
+};

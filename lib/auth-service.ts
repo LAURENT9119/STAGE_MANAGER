@@ -6,60 +6,16 @@ export interface User {
   email: string;
   role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
   full_name: string;
+  phone?: string;
+  avatar_url?: string;
   created_at: string;
+  updated_at?: string;
 }
 
-// Test users for development
-const TEST_USERS: User[] = [
-  {
-    id: 'test-admin-1',
-    email: 'admin@test.com',
-    role: 'admin',
-    full_name: 'Admin Test',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'test-hr-1',
-    email: 'hr@test.com',
-    role: 'hr',
-    full_name: 'HR Test',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'test-tutor-1',
-    email: 'tutor@test.com',
-    role: 'tutor',
-    full_name: 'Tuteur Test',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'test-intern-1',
-    email: 'intern@test.com',
-    role: 'intern',
-    full_name: 'Stagiaire Test',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'test-finance-1',
-    email: 'finance@test.com',
-    role: 'finance',
-    full_name: 'Finance Test',
-    created_at: new Date().toISOString(),
-  },
-];
-
 export class AuthService {
-  private isTestMode = process.env.NODE_ENV === 'development';
+  private isProduction = process.env.NODE_ENV === 'production';
 
   async signIn(email: string, password: string): Promise<User | null> {
-    if (this.isTestMode && password === 'test123') {
-      const testUser = TEST_USERS.find(user => user.email === email);
-      if (testUser) {
-        localStorage.setItem('currentUser', JSON.stringify(testUser));
-        return testUser;
-      }
-    }
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -75,9 +31,32 @@ export class AuthService {
           .eq('id', data.user.id)
           .single();
 
-        if (userError) throw userError;
+        if (userError) {
+          // Si l'utilisateur n'existe pas dans la table users, le créer
+          const newUser: Partial<User> = {
+            id: data.user.id,
+            email: data.user.email!,
+            full_name: data.user.user_metadata?.full_name || data.user.email!,
+            role: data.user.user_metadata?.role || 'intern',
+          };
+
+          const { data: createdUser, error: createError } = await supabase
+            .from('users')
+            .insert(newUser)
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('currentUser', JSON.stringify(createdUser));
+          }
+          return createdUser;
+        }
         
-        localStorage.setItem('currentUser', JSON.stringify(userData));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('currentUser', JSON.stringify(userData));
+        }
         return userData;
       }
     } catch (error) {
@@ -88,16 +67,59 @@ export class AuthService {
     return null;
   }
 
-  async signOut(): Promise<void> {
-    if (this.isTestMode) {
-      localStorage.removeItem('currentUser');
-      return;
+  async signUp(email: string, password: string, fullName: string, role: string): Promise<User | null> {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role,
+          },
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Créer le profil utilisateur
+        const newUser: Partial<User> = {
+          id: data.user.id,
+          email: email,
+          full_name: fullName,
+          role: role as any,
+        };
+
+        const { data: createdUser, error: createError } = await supabase
+          .from('users')
+          .insert(newUser)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('currentUser', JSON.stringify(createdUser));
+        }
+        return createdUser;
+      }
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error;
     }
 
+    return null;
+  }
+
+  async signOut(): Promise<void> {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      localStorage.removeItem('currentUser');
+      
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('currentUser');
+      }
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;
@@ -118,19 +140,24 @@ export class AuthService {
     return null;
   }
 
-  async switchTestUser(email: string): Promise<User | null> {
-    if (!this.isTestMode) return null;
-    
-    const testUser = TEST_USERS.find(user => user.email === email);
-    if (testUser) {
-      localStorage.setItem('currentUser', JSON.stringify(testUser));
-      return testUser;
-    }
-    return null;
-  }
+  async refreshUser(userId: string): Promise<User | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-  getTestUsers(): User[] {
-    return this.isTestMode ? TEST_USERS : [];
+      if (error) return null;
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('currentUser', JSON.stringify(data));
+      }
+      return data;
+    } catch (error) {
+      console.error('Refresh user error:', error);
+      return null;
+    }
   }
 }
 
