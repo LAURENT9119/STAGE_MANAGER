@@ -1,4 +1,3 @@
-
 import { createBrowserClient } from '@supabase/ssr';
 import { AuthService } from './auth-service';
 
@@ -40,7 +39,15 @@ export interface UserProfile {
   updated_at: string
 }
 
-export interface User extends UserProfile {}
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  name?: string; // Alias for full_name
+  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Intern {
   id: string

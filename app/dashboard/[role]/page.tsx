@@ -36,7 +36,7 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
 
   return (
     <div className="space-y-6">
-      <UserWelcome user={user} />
+      <UserWelcome user={{...user, name: user.full_name}} />
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
