@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { AuthService } from './auth-service';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,13 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-});
+// For backward compatibility
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+
+// Export new client functions
+export { createClient as createBrowserClient } from './supabase/client';
+export { createClient as createServerClient } from './supabase/server';
 
 export const authService = AuthService;
 export { AuthService };
