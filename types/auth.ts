@@ -8,3 +8,16 @@ export interface UserWithMetadata extends SupabaseUser {
     [key: string]: any;
   };
 }
+
+export interface ExtendedUser {
+  id: string;
+  email?: string;
+  role?: string;
+  full_name?: string;
+  avatar?: string;
+  user_metadata?: {
+    avatar_url?: string;
+    full_name?: string;
+    [key: string]: any;
+  };
+}

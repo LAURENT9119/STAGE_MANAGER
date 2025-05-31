@@ -1,8 +1,8 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { User } from '@supabase/supabase-js';
+import type { ExtendedUser } from '@/types/auth';
 import { AuthService } from '@/lib/auth-service';
-import { User } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 
 interface AuthState {
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
               .select('*')
               .eq('id', result.user.id)
               .single();
-            
+
             if (userData) {
               set({ user: userData, loading: false });
               return true;
@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthState>()(
               })
               .select()
               .single();
-            
+
             if (newUser) {
               set({ user: newUser, loading: false });
               return true;
@@ -116,7 +116,7 @@ export const useAuthStore = create<AuthState>()(
               .select('*')
               .eq('id', session.user.id)
               .single();
-            
+
             if (userData) {
               set({ user: userData, loading: false });
             } else {

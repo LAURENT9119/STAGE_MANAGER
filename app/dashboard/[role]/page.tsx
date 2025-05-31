@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
-import type { UserWithMetadata } from '@/types/auth';
+import type { ExtendedUser } from '@/types/auth';
 import { useInterns } from '@/hooks/use-interns';
 import { useRequests } from '@/hooks/use-requests';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,8 +39,8 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
     <div className="space-y-6">
       <UserWelcome user={{
         ...user,
-        avatar: (user as UserWithMetadata).user_metadata?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-      }} />
+        avatar: user.user_metadata?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+      } as ExtendedUser} />
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
