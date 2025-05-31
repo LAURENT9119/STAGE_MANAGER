@@ -1,0 +1,55 @@
+[23:12:03.221] Running build in Washington, D.C., USA (East) – iad1
+[23:12:03.222] Build machine configuration: 2 cores, 8 GB
+[23:12:03.263] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: b510873)
+[23:12:03.438] Previous build caches not available
+[23:12:07.815] Cloning completed: 4.551s
+[23:12:08.194] Running "vercel build"
+[23:12:08.698] Vercel CLI 42.2.0
+[23:12:09.068] Installing dependencies...
+[23:12:15.044] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[23:12:15.351] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+[23:12:15.469] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[23:12:17.811] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[23:12:17.851] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[23:12:18.018] npm warn deprecated glob@7.1.7: Glob versions prior to v9 are no longer supported
+[23:12:20.038] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[23:12:26.333] 
+[23:12:26.333] added 552 packages in 17s
+[23:12:26.334] 
+[23:12:26.334] 154 packages are looking for funding
+[23:12:26.335]   run `npm fund` for details
+[23:12:26.401] Detected Next.js version: 13.5.1
+[23:12:26.402] Running "npm run build"
+[23:12:26.526] 
+[23:12:26.527] > nextjs@0.1.0 build
+[23:12:26.527] > next build
+[23:12:26.527] 
+[23:12:27.109] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[23:12:27.109] This information is used to shape Next.js' roadmap and prioritize features.
+[23:12:27.110] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[23:12:27.110] https://nextjs.org/telemetry
+[23:12:27.110] 
+[23:12:27.183]    Creating an optimized production build...
+[23:12:44.997] Browserslist: caniuse-lite is outdated. Please run:
+[23:12:44.999]   npx update-browserslist-db@latest
+[23:12:44.999]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[23:12:51.213] Browserslist: caniuse-lite is outdated. Please run:
+[23:12:51.214]   npx browserslist@latest --update-db
+[23:12:51.215]   Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[23:12:52.754]  ✓ Compiled successfully
+[23:12:52.755]    Linting and checking validity of types...
+[23:13:04.056] Failed to compile.
+[23:13:04.057] 
+[23:13:04.057] ./app/dashboard/[role]/page.tsx:41:17
+[23:13:04.058] Type error: Cannot find name 'userData'.
+[23:13:04.058] 
+[23:13:04.058] [0m [90m 39 | [39m      [33m<[39m[33mUserWelcome[39m user[33m=[39m{{[0m
+[23:13:04.059] [0m [90m 40 | [39m        [33m...[39muser[33m,[39m[0m
+[23:13:04.059] [0m[31m[1m>[22m[39m[90m 41 | [39m        avatar[33m:[39m userData[33m?[39m[33m.[39mavatar [33m||[39m [32m'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'[39m[0m
+[23:13:04.059] [0m [90m    | [39m                [31m[1m^[22m[39m[0m
+[23:13:04.059] [0m [90m 42 | [39m      }} [33m/[39m[33m>[39m[0m
+[23:13:04.060] [0m [90m 43 | [39m[0m
+[23:13:04.060] [0m [90m 44 | [39m      {[90m/* Statistiques rapides */[39m}[0m
+[23:13:04.154] Error: Command "npm run build" exited with 1
+[23:13:04.414] 
+[23:13:07.482] Exiting build container
