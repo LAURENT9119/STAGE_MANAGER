@@ -1,6 +1,15 @@
 
 {
   "buildCommand": "npm run build",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    }
+  ],
   "outputDirectory": ".next",
   "framework": "nextjs",
   "functions": {

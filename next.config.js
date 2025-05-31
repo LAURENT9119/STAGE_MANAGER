@@ -3,6 +3,7 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
+    optimizePackageImports: ["@supabase/supabase-js"],
   },
   images: {
     domains: ['ljboqtmrferkafwfanva.supabase.co'],
