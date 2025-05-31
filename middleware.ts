@@ -9,9 +9,6 @@ export async function middleware(req: NextRequest) {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn("Supabase environment variables not found");
-      }
       return NextResponse.next();
     }
 
@@ -77,9 +74,7 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Middleware error:", error);
-    }
+    // Silent fail in production
     return NextResponse.next();
   }
 }

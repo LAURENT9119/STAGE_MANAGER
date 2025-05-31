@@ -3,10 +3,8 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
-    optimizePackageImports: ["@supabase/supabase-js"],
   },
   images: {
-    domains: ['blqzunqikyrwzelsbbzh.supabase.co'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -16,14 +14,11 @@ const nextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://workspace-23267a12-7fd7-4853-b409-fd36970dff62-00-v616wuy29im7.kirk.replit.dev',
-  },
   // Production optimizations
   swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error']
+      exclude: ['error', 'warn']
     } : false,
   },
   poweredByHeader: false,

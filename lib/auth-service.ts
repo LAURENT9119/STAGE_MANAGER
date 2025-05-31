@@ -1,20 +1,9 @@
+import { createClient } from '@supabase/supabase-js';
 
-import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export interface User {
-  id: string
-  email: string
-  role: 'admin' | 'hr' | 'finance' | 'tutor' | 'intern'
-  full_name?: string
-  avatar_url?: string
-  created_at: string
-  updated_at: string
-}
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export class AuthService {
   static async signIn(email: string, password: string) {
@@ -22,149 +11,107 @@ export class AuthService {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data.user) {
-        // Récupérer les informations utilisateur depuis la table users
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
           .eq('id', data.user.id)
-          .single()
+          .single();
 
-        if (userError) throw userError
+        if (userError) throw userError;
 
-        return { user: userData, session: data.session }
+        return {
+          user: data.user,
+          userData,
+          session: data.session,
+        };
       }
 
-      return { user: null, session: null }
+      return { user: null, userData: null, session: null };
     } catch (error) {
-      console.error('Error signing in:', error)
-      throw error
+      console.error('Sign in error:', error);
+      throw error;
     }
   }
 
-  static async signUp(email: string, password: string, userData: Partial<User>) {
+  static async signUp(email: string, password: string, userData: any) {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data.user) {
-        // Créer l'utilisateur dans la table users
-        const { data: newUser, error: userError } = await supabase
+        const { error: insertError } = await supabase
           .from('users')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              role: userData.role || 'intern',
-              full_name: userData.full_name,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ])
-          .select()
-          .single()
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            ...userData,
+          });
 
-        if (userError) throw userError
-
-        return { user: newUser, session: data.session }
+        if (insertError) throw insertError;
       }
 
-      return { user: null, session: null }
+      return data;
     } catch (error) {
-      console.error('Error signing up:', error)
-      throw error
+      console.error('Sign up error:', error);
+      throw error;
     }
   }
 
   static async signOut() {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (error) {
-      console.error('Error signing out:', error)
-      throw error
+      console.error('Sign out error:', error);
+      throw error;
     }
   }
 
-  static async getCurrentUser(): Promise<User | null> {
+  static async getCurrentUser() {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) return null
+      const { data: { user } } = await supabase.auth.getUser();
 
-      const { data: user, error } = await supabase
+      if (!user) return null;
+
+      const { data: userData, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', session.user.id)
-        .single()
+        .eq('id', user.id)
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      return user
+      return { user, userData };
     } catch (error) {
-      console.error('Error getting current user:', error)
-      return null
+      console.error('Get current user error:', error);
+      return null;
     }
   }
 
-  static async updateUser(id: string, updates: Partial<User>) {
+  static async updateProfile(userId: string, updates: any) {
     try {
       const { data, error } = await supabase
         .from('users')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
+        .update(updates)
+        .eq('id', userId)
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error updating user:', error)
-      throw error
-    }
-  }
-
-  static async deleteUser(id: string) {
-    try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
-    } catch (error) {
-      console.error('Error deleting user:', error)
-      throw error
-    }
-  }
-
-  static async getUsers() {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-
-      return data
-    } catch (error) {
-      console.error('Error getting users:', error)
-      throw error
+      console.error('Update profile error:', error);
+      throw error;
     }
   }
 }
-
-export const authService = AuthService

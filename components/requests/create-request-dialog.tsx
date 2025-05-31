@@ -1,195 +1,222 @@
-"use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { useRequests } from "@/hooks/use-requests"
-import { useAuthStore } from "@/store/auth-store"
-import { useInterns } from "@/hooks/use-interns"
-import { Plus, Upload } from "lucide-react"
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Plus } from "lucide-react";
+
+const requestSchema = z.object({
+  type: z.string().min(1, "Le type de demande est requis"),
+  title: z.string().min(1, "Le titre est requis"),
+  description: z.string().min(1, "La description est requise"),
+  priority: z.enum(["low", "medium", "high"]),
+});
+
+type RequestFormData = z.infer<typeof requestSchema>;
 
 interface CreateRequestDialogProps {
-  children?: React.ReactNode
+  onRequestCreated?: () => void;
 }
 
-export function CreateRequestDialog({ children }: CreateRequestDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [type, setType] = useState("")
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function CreateRequestDialog({ onRequestCreated }: CreateRequestDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const { toast } = useToast()
-  const { createRequest } = useRequests()
-  const { user } = useAuthStore()
-  const { interns } = useInterns()
+  const form = useForm<RequestFormData>({
+    resolver: zodResolver(requestSchema),
+    defaultValues: {
+      type: "",
+      title: "",
+      description: "",
+      priority: "medium",
+    },
+  });
 
-  // Find the intern record for the current user
-  const currentIntern = interns.find(intern => intern.user_id === user?.id)
-
-  const resetForm = () => {
-    setType("")
-    setTitle("")
-    setDescription("")
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!currentIntern) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de trouver votre profil de stagiaire",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
+  const onSubmit = async (data: RequestFormData) => {
     try {
-      const { error } = await createRequest({
-        intern_id: currentIntern.id,
-        type: type as any,
-        title,
-        description,
-      })
+      setIsLoading(true);
 
-      if (error) {
-        throw new Error(error)
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté pour créer une demande",
+          variant: "destructive",
+        });
+        return;
       }
 
-      toast({
-        title: "Demande créée",
-        description: "Votre demande a été soumise avec succès",
-      })
+      const { error } = await supabase
+        .from('requests')
+        .insert({
+          ...data,
+          user_id: user.id,
+          status: 'pending',
+        });
 
-      resetForm()
-      setOpen(false)
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Votre demande a été créée avec succès",
+      });
+
+      form.reset();
+      setOpen(false);
+      onRequestCreated?.();
     } catch (error) {
+      console.error('Error creating request:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la demande",
+        description: "Une erreur est survenue lors de la création de votre demande",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false);
     }
-  }
-
-  const getTypeLabel = (value: string) => {
-    const types = {
-      convention: "Convention de stage",
-      prolongation: "Prolongation de stage",
-      conge: "Demande de congé",
-      gratification: "Demande de gratification",
-      evaluation: "Demande d'évaluation"
-    }
-    return types[value as keyof typeof types] || value
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children || (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvelle demande
-          </Button>
-        )}
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Nouvelle demande
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-            <DialogTitle>Créer une nouvelle demande</DialogTitle>
-          <DialogDescription>
-            Remplissez le formulaire pour soumettre une nouvelle demande
-          </DialogDescription>
+          <DialogTitle>Créer une nouvelle demande</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type de demande</Label>
-            <Select value={type} onValueChange={setType} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez le type de demande" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="convention">Convention de stage</SelectItem>
-                <SelectItem value="prolongation">Prolongation de stage</SelectItem>
-                <SelectItem value="conge">Demande de congé</SelectItem>
-                <SelectItem value="gratification">Demande de gratification</SelectItem>
-                <SelectItem value="evaluation">Demande d'évaluation</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="title">Titre</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Titre de votre demande"
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type de demande</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez un type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="leave">Demande de congé</SelectItem>
+                      <SelectItem value="equipment">Demande d'équipement</SelectItem>
+                      <SelectItem value="training">Demande de formation</SelectItem>
+                      <SelectItem value="support">Support technique</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Décrivez votre demande en détail..."
-              rows={4}
-              required
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Titre</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Titre de votre demande" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label>Pièces jointes (optionnel)</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="mx-auto h-8 w-8 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
-                Glissez-déposez vos fichiers ici ou cliquez pour parcourir
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                PDF, Images jusqu'à 10MB
-              </p>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Décrivez votre demande en détail"
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priorité</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="low">Faible</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Élevée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isLoading}
+              >
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Création..." : "Créer"}
+              </Button>
             </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isSubmitting}
-            >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Création..." : "Créer la demande"}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
