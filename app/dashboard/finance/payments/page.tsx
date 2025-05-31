@@ -355,5 +355,6 @@ export default function PaymentsPage() {
 
       <SiteFooter />
     </div>
+    </div>
   );
 }

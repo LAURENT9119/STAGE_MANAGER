@@ -1,12 +1,19 @@
-"use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/string-utils";
+'use client';
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface UserProfile {
-  full_name: string;
-  role: string;
-  avatar:string
+  id: string;
+  email?: string;
+  full_name?: string;
+  role?: string;
+  avatar?: string;
+  user_metadata?: {
+    avatar_url?: string;
+    full_name?: string;
+  };
 }
 
 interface UserWelcomeProps {
@@ -14,30 +21,27 @@ interface UserWelcomeProps {
 }
 
 export function UserWelcome({ user }: UserWelcomeProps) {
-  const now = new Date();
-  const hours = now.getHours();
-
-  let greeting = "Bonjour";
-  if (hours < 12) {
-    greeting = "Bonjour";
-  } else if (hours < 18) {
-    greeting = "Bon après-midi";
-  } else {
-    greeting = "Bonsoir";
-  }
+  const displayName = user.full_name || user.user_metadata?.full_name || user.email || 'Utilisateur';
+  const avatarUrl = user.avatar || user.user_metadata?.avatar_url;
 
   return (
-    <div className="flex items-center space-x-4 mb-6">
-      <Avatar className="h-12 w-12">
-        <AvatarImage src={user.avatar} alt={user.full_name} />
-        <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
-      </Avatar>
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{greeting}, {user.full_name}</h2>
-        <p className="text-muted-foreground">
-          Bienvenue sur votre tableau de bord. Voici un aperçu de votre activité.
-        </p>
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={avatarUrl} alt={displayName} />
+            <AvatarFallback>
+              {displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-2xl font-bold">Bienvenue, {displayName}</h2>
+            <p className="text-muted-foreground">
+              Rôle: {user.role || 'Non défini'}
+            </p>
+          </div>
+        </CardTitle>
+      </CardHeader>
+    </Card>
   );
 }
