@@ -1,31 +1,54 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
+  experimental: {
+    serverComponentsExternalPackages: ["@supabase/supabase-js"],
   },
   images: {
-    domains: ['images.pexels.com'],
-    unoptimized: true,
+    domains: ['ljboqtmrferkafwfanva.supabase.co'],
   },
-  experimental: {
-    serverActions: true,
-    optimizeCss: true,
-    scrollRestoration: true,
+  env: {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
   },
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-  reactStrictMode: true,
-  compress: true,
-  poweredByHeader: false,
   webpack: (config, { dev, isServer }) => {
-    config.cache = true;
-    if (!dev) {
-      config.devtool = false;
+    if (dev && !isServer) {
+      config.devtool = 'eval-source-map';
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      }
     }
+    
+    // Ignorer les modules optionnels qui causent des warnings
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      "bufferutil": false,
+      "utf-8-validate": false,
+    };
+    
     return config;
   },
-};
+  // Configuration pour Replit
+  async rewrites() {
+    return []
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+    ]
+  },
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
