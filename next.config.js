@@ -45,6 +45,9 @@ const nextConfig = {
     return config;
   },
   
+  // Vercel-specific optimizations
+  output: 'standalone',
+  
   async headers() {
     return [
       {
