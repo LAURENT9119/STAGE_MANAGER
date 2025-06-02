@@ -1,11 +1,19 @@
 
 import { createClient } from '@/lib/supabase/client';
 
-const supabase = createClient();
+let supabaseClient: any = null;
+
+const getSupabaseClient = () => {
+  if (!supabaseClient) {
+    supabaseClient = createClient();
+  }
+  return supabaseClient;
+};
 
 class AuthService {
   static async signIn(email: string, password: string) {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -20,6 +28,7 @@ class AuthService {
 
   static async signUp(email: string, password: string, userData: any) {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -40,6 +49,7 @@ class AuthService {
 
   static async signOut() {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: any) {
@@ -50,6 +60,7 @@ class AuthService {
 
   static async getCurrentUser() {
     try {
+      const supabase = getSupabaseClient();
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
 
@@ -75,6 +86,7 @@ class AuthService {
 
   static async updateProfile(userId: string, updates: any) {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('users')
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -92,6 +104,7 @@ class AuthService {
 
   static async getSession() {
     try {
+      const supabase = getSupabaseClient();
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) throw error;
       return session;
@@ -103,6 +116,7 @@ class AuthService {
 
   static async refreshUser(userId: string) {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('users')
         .select('*')

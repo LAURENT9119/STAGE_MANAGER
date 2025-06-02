@@ -1,7 +1,9 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["@supabase/supabase-js"],
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/auth-helpers-nextjs'],
+    forceSwcTransforms: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -25,35 +27,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  experimental: {
-    forceSwcTransforms: true,
-  },
-  webpack: (config, { isServer, dev }) => {
-    if (isServer) {
-      config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
-    }
-
-    // Fix for potential module resolution issues
+  webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
       tls: false,
     };
-
-    // Production optimizations
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        sideEffects: false,
-      };
-    }
-
     return config;
   },
-
-  output: 'standalone',
-
   async headers() {
     return [
       {
@@ -68,22 +50,21 @@ const nextConfig = {
             value: 'nosniff',
           },
           {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+          {
+             key: 'Strict-Transport-Security',
+             value: 'max-age=31536000; includeSubDomains',
+          },
+          {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
           },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          },
         ],
       },
-    ];
+    ]
   },
-
   async redirects() {
     return [
       {
@@ -93,6 +74,17 @@ const nextConfig = {
       },
     ];
   },
-};
+  // Optimisations pour le développement
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  },
+  // Configuration pour Replit
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  },
+  output: 'standalone',
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
