@@ -22,10 +22,6 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    },
     "target": "es2022",
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": false,

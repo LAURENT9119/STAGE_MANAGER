@@ -98,6 +98,4 @@ export function useRequests(): UseRequestsState {
     createRequest,
     updateRequest,
   };
-}st,
-  };
 }
