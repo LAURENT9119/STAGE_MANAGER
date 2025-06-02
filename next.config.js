@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["@supabase/supabase-js"],
@@ -11,7 +12,6 @@ const nextConfig = {
       },
     ],
   },
-  // Production optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
@@ -25,7 +25,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  webpack: (config, { isServer }) => {
+  experimental: {
+    forceSwcTransforms: true,
+  },
+  webpack: (config, { isServer, dev }) => {
     if (isServer) {
       config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
     }
@@ -38,10 +41,17 @@ const nextConfig = {
       tls: false,
     };
 
+    // Production optimizations
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        sideEffects: false,
+      };
+    }
+
     return config;
   },
 
-  // Vercel-specific optimizations
   output: 'standalone',
 
   async headers() {
