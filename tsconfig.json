@@ -1,10 +1,7 @@
 
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    },
+    "target": "es2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -22,7 +19,16 @@
         "name": "next"
       }
     ],
-    "target": "es2022",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/store/*": ["./store/*"],
+      "@/types/*": ["./types/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/app/*": ["./app/*"]
+    },
     "forceConsistentCasingInFileNames": true,
     "noUncheckedIndexedAccess": false,
     "noUnusedLocals": false,
