@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
-import type { ExtendedUser } from '@/types/auth';
 import { useInterns } from '@/hooks/use-interns';
 import { useRequests } from '@/hooks/use-requests';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +11,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserWelcome } from '@/components/dashboard/user-welcome';
 
 export default function RoleDashboard({ params }: { params: { role: string } }) {
-  const { user, initialize } = useAuthStore();
+  const { user, initializeAuth } = useAuthStore();
   const { interns, loading: internsLoading, error: internsError } = useInterns();
   const { requests, loading: requestsLoading, error: requestsError } = useRequests();
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initializeAuth();
+  }, [initializeAuth]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
