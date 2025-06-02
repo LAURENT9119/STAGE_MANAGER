@@ -73,7 +73,11 @@ export function useRequests(): UseRequestsState {
 
   const updateRequest = async (id: string, data: any): Promise<boolean> => {
     try {
-      // Logique de mise à jour à implémenter selon vos besoins
+      const result = await requestService.update(id, data);
+      if (result.error) {
+        setError(result.error.message);
+        return false;
+      }
       await fetchRequests(); // Recharger la liste
       return true;
     } catch (err: any) {
@@ -93,5 +97,7 @@ export function useRequests(): UseRequestsState {
     refetch: fetchRequests,
     createRequest,
     updateRequest,
+  };
+}st,
   };
 }
