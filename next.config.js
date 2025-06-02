@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   serverExternalPackages: ["@supabase/supabase-js"],
@@ -30,7 +29,7 @@ const nextConfig = {
     if (isServer) {
       config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
     }
-    
+
     // Fix for potential module resolution issues
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -38,13 +37,13 @@ const nextConfig = {
       net: false,
       tls: false,
     };
-    
+
     return config;
   },
-  
+
   // Vercel-specific optimizations
   output: 'standalone',
-  
+
   async headers() {
     return [
       {
@@ -74,7 +73,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   async redirects() {
     return [
       {
