@@ -118,5 +118,5 @@ export const config = {
     "/auth/:path*",
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)",
   ],
-  runtime: 'edge',
+  runtime: 'experimental-edge',
 };
