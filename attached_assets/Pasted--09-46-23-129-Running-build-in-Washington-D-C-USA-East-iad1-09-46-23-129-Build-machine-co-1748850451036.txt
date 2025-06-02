@@ -1,0 +1,57 @@
+[09:46:23.129] Running build in Washington, D.C., USA (East) – iad1
+[09:46:23.129] Build machine configuration: 2 cores, 8 GB
+[09:46:23.143] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: a5cc9cf)
+[09:46:23.317] Previous build caches not available
+[09:46:26.435] Cloning completed: 3.291s
+[09:46:26.782] Running "vercel build"
+[09:46:27.222] Vercel CLI 42.2.0
+[09:46:27.511] Warning: Detected "engines": { "node": ">=18.17.0" } in your `package.json` that will automatically upgrade when a new major Node.js Version is released. Learn More: http://vercel.link/node-version
+[09:46:27.528] Installing dependencies...
+[09:46:30.676] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[09:46:32.116] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[09:46:32.174] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+[09:46:32.225] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[09:46:32.267] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[09:46:34.089] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[09:46:40.798] 
+[09:46:40.800] added 545 packages in 13s
+[09:46:40.801] 
+[09:46:40.802] 153 packages are looking for funding
+[09:46:40.802]   run `npm fund` for details
+[09:46:40.854] Detected Next.js version: 14.2.29
+[09:46:40.856] Running "npm run build"
+[09:46:40.974] 
+[09:46:40.975] > nextjs-internship-management@0.1.0 build
+[09:46:40.975] > next build
+[09:46:40.975] 
+[09:46:41.586]   ▲ Next.js 14.2.29
+[09:46:41.586]   - Environments: .env.local
+[09:46:41.587]   - Experiments (use with caution):
+[09:46:41.587]     · turbo
+[09:46:41.587] 
+[09:46:41.668]    Creating an optimized production build ...
+[09:46:57.195] Failed to compile.
+[09:46:57.195] 
+[09:46:57.195] ./store/auth-store.ts
+[09:46:57.195] Error: 
+[09:46:57.195]   [31mx[0m Expected ',', got ';'
+[09:46:57.196]      ,-[[36;1;4m/vercel/path0/store/auth-store.ts[0m:138:1]
+[09:46:57.196]  [2m138[0m |   clearError: () => {
+[09:46:57.196]  [2m139[0m |     set({ error: null });
+[09:46:57.196]  [2m140[0m |   },
+[09:46:57.196]  [2m141[0m | });
+[09:46:57.196]      : [31;1m  ^[0m
+[09:46:57.196]      `----
+[09:46:57.196] 
+[09:46:57.196] Caused by:
+[09:46:57.196]     Syntax Error
+[09:46:57.196] 
+[09:46:57.196] Import trace for requested module:
+[09:46:57.196] ./store/auth-store.ts
+[09:46:57.196] ./app/dashboard/layout.tsx
+[09:46:57.196] 
+[09:46:57.197] 
+[09:46:57.198] > Build failed because of webpack errors
+[09:46:57.245] Error: Command "npm run build" exited with 1
+[09:46:57.554] 
+[09:47:00.769] Exiting build container
