@@ -1,0 +1,89 @@
+[12:22:06.854] Running build in Washington, D.C., USA (East) – iad1
+[12:22:06.855] Build machine configuration: 2 cores, 8 GB
+[12:22:06.869] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: 0167909)
+[12:22:07.310] Previous build caches not available
+[12:22:07.426] Cloning completed: 557.000ms
+[12:22:07.722] Running "vercel build"
+[12:22:08.168] Vercel CLI 42.2.0
+[12:22:08.448] Warning: Detected "engines": { "node": ">=18.17.0" } in your `package.json` that will automatically upgrade when a new major Node.js Version is released. Learn More: http://vercel.link/node-version
+[12:22:08.456] Running "install" command: `npm install`...
+[12:22:44.182] 
+[12:22:44.183] > nextjs-internship-management@0.1.0 postinstall
+[12:22:44.183] > npm audit fix --force || true
+[12:22:44.184] 
+[12:22:44.291] npm warn using --force Recommended protections disabled.
+[12:22:47.704] 
+[12:22:47.706] added 3 packages, and audited 287 packages in 3s
+[12:22:47.707] 
+[12:22:47.708] 42 packages are looking for funding
+[12:22:47.708]   run `npm fund` for details
+[12:22:47.708] 
+[12:22:47.709] found 0 vulnerabilities
+[12:22:47.975] 
+[12:22:47.975] added 283 packages, and audited 284 packages in 39s
+[12:22:47.975] 
+[12:22:47.975] 40 packages are looking for funding
+[12:22:47.975]   run `npm fund` for details
+[12:22:47.977] 
+[12:22:47.978] found 0 vulnerabilities
+[12:22:48.023] Detected Next.js version: 15.3.3
+[12:22:48.024] Running "npm run build"
+[12:22:48.885] 
+[12:22:48.886] > nextjs-internship-management@0.1.0 build
+[12:22:48.886] > next build
+[12:22:48.886] 
+[12:22:49.906]    ▲ Next.js 15.3.3
+[12:22:49.907]    - Environments: .env.local
+[12:22:49.907] 
+[12:22:49.922]    Creating an optimized production build ...
+[12:23:01.425] Failed to compile.
+[12:23:01.425] 
+[12:23:01.425] app/layout.tsx
+[12:23:01.425] An error occurred in `next/font`.
+[12:23:01.426] 
+[12:23:01.426] Error: Cannot find module 'autoprefixer'
+[12:23:01.426] Require stack:
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/webpack/config/index.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/webpack-config.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/webpack/plugins/next-trace-entrypoints-plugin.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/collect-build-traces.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/build/index.js
+[12:23:01.426] - /vercel/path0/node_modules/next/dist/cli/next-build.js
+[12:23:01.426]     at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+[12:23:01.426]     at /vercel/path0/node_modules/next/dist/server/require-hook.js:55:36
+[12:23:01.426]     at Function.resolve (node:internal/modules/helpers:145:19)
+[12:23:01.427]     at loadPlugin (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:53:32)
+[12:23:01.427]     at /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:56
+[12:23:01.427]     at Array.map (<anonymous>)
+[12:23:01.427]     at getPostCssPlugins (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:47)
+[12:23:01.427]     at async /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js:125:36
+[12:23:01.427]     at async /vercel/path0/node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js:94:33
+[12:23:01.427]     at async Span.traceAsyncFn (/vercel/path0/node_modules/next/dist/trace/trace.js:157:20)
+[12:23:01.427] 
+[12:23:01.427] ./app/auth/login/page.tsx
+[12:23:01.427] Module not found: Can't resolve '@/store/auth-store'
+[12:23:01.427] 
+[12:23:01.427] https://nextjs.org/docs/messages/module-not-found
+[12:23:01.427] 
+[12:23:01.427] ./app/auth/login/page.tsx
+[12:23:01.427] Module not found: Can't resolve '@/components/ui/button'
+[12:23:01.427] 
+[12:23:01.427] https://nextjs.org/docs/messages/module-not-found
+[12:23:01.428] 
+[12:23:01.428] ./app/auth/login/page.tsx
+[12:23:01.428] Module not found: Can't resolve '@/components/ui/input'
+[12:23:01.428] 
+[12:23:01.428] https://nextjs.org/docs/messages/module-not-found
+[12:23:01.428] 
+[12:23:01.428] ./app/auth/login/page.tsx
+[12:23:01.428] Module not found: Can't resolve '@/components/ui/label'
+[12:23:01.428] 
+[12:23:01.428] https://nextjs.org/docs/messages/module-not-found
+[12:23:01.428] 
+[12:23:01.429] 
+[12:23:01.429] > Build failed because of webpack errors
+[12:23:01.473] Error: Command "npm run build" exited with 1
+[12:23:01.746] 
+[12:23:05.196] Exiting build container
