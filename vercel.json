@@ -2,7 +2,7 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "functions": {
     "app/**/*.{js,ts,tsx}": {
       "maxDuration": 30
@@ -13,11 +13,13 @@
     "silent": true
   },
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "NEXT_TELEMETRY_DISABLED": "1"
     }
   }
 }
