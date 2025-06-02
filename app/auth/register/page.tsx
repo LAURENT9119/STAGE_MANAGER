@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -39,42 +38,64 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <MainNav />
-        </div>
-      </header>
-      
-      <main className="flex-1 flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-          {/* Image Section */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className="relative">
-              <img
-                alt="Rejoignez notre plateforme"
-                className="mx-auto aspect-square overflow-hidden rounded-xl object-cover object-center border shadow-lg"
-                src="https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=800&h=800&dpr=2"
-                width={500}
-                height={500}
-              />
-              <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-xl animate-bounce">
-                <GraduationCap className="h-8 w-8" />
+    <div className="flex min-h-screen bg-gray-50">
+          {/* Image côté gauche */}
+          <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 to-teal-700 items-center justify-center">
+            <div className="max-w-lg text-center text-white px-8">
+              <div className="mb-8">
+                <div className="w-32 h-32 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                  </svg>
+                </div>
+                <h1 className="text-4xl font-bold mb-4">Rejoignez notre équipe</h1>
+                <p className="text-xl text-green-100">
+                  Créez votre compte pour accéder à la plateforme de gestion des stages
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 text-left">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span>Interface intuitive et moderne</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span>Accès sécurisé et personnalisé</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span>Support et accompagnement</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Form Section */}
-          <div className="flex items-center justify-center">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Inscription</CardTitle>
-                <CardDescription>
-                  Créez votre compte pour accéder à la plateforme.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Formulaire côté droit */}
+          <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8">
+              <div>
+                <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                  Créer un compte
+                </h2>
+                <p className="mt-2 text-center text-sm text-gray-600">
+                  Disponible pour les tuteurs et stagiaires uniquement
+                </p>
+              </div>
+              <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                <input type="hidden" name="remember" value="true" />
+                <div className="rounded-md shadow-sm -space-y-px">
                   <div>
                     <Label htmlFor="fullName">Nom complet</Label>
                     <Input
@@ -84,6 +105,7 @@ export default function RegisterPage() {
                       onChange={(e) => setFullName(e.target.value)}
                       required
                       placeholder="Votre nom complet"
+                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     />
                   </div>
                   <div>
@@ -95,6 +117,7 @@ export default function RegisterPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="votre@email.com"
+                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     />
                   </div>
                   <div>
@@ -106,44 +129,44 @@ export default function RegisterPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="••••••••"
+                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="role">Rôle</Label>
-                    <Select value={role} onValueChange={setRole}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez votre rôle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="intern">Stagiaire</SelectItem>
-                        <SelectItem value="tutor">Tuteur</SelectItem>
-                        <SelectItem value="hr">RH</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="admin">Administrateur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="role">Rôle</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre rôle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tutor">Tuteur</SelectItem>
+                      <SelectItem value="intern">Stagiaire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div>
                   <Button type="submit" className="w-full" disabled={loading || !role}>
                     {loading ? 'Inscription...' : 'S\'inscrire'}
                   </Button>
-                </form>
-                <div className="mt-4 text-center">
-                  <Link href="/auth/login" className="text-sm text-blue-600 hover:underline">
-                    Déjà un compte ? Se connecter
-                  </Link>
                 </div>
-              </CardContent>
-            </Card>
+              </form>
+
+              <div className="mt-4 text-center">
+                <Link href="/auth/login" className="text-sm text-blue-600 hover:underline">
+                  Déjà un compte ? Se connecter
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
-
-      <SiteFooter />
-    </div>
   );
 }

@@ -1,19 +1,9 @@
-
 import { useState, useEffect } from 'react';
-import { internService, Intern } from '@/lib/supabase';
+import { ProductionService, ProductionIntern } from '@/lib/production-service';
 import { useAuthStore } from '@/store/auth-store';
 
-interface UseInternsState {
-  interns: Intern[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  createIntern: (data: any) => Promise<boolean>;
-  updateIntern: (id: string, data: any) => Promise<boolean>;
-}
-
-export function useInterns(): UseInternsState {
-  const [interns, setInterns] = useState<Intern[]>([]);
+export function useInterns() {
+  const [interns, setInterns] = useState<ProductionIntern[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -23,83 +13,80 @@ export function useInterns(): UseInternsState {
       setLoading(true);
       setError(null);
 
+      let data: ProductionIntern[] = [];
+
       if (!user) {
         setInterns([]);
         return;
       }
 
-      let result;
-      if (user.role === 'tutor') {
-        // Pour les tuteurs, récupérer seulement leurs stagiaires
-        result = await internService.getAll();
-        if (result.data) {
-          const filteredInterns = result.data.filter((intern: Intern) => 
-            intern.tutor_id === user.id
-          );
-          setInterns(filteredInterns);
-        }
-      } else if (user.role === 'intern') {
-        // Pour les stagiaires, récupérer seulement leur propre profil
-        result = await internService.getByUser(user.id);
-        if (result.data) {
-          setInterns([result.data]);
-        } else {
-          setInterns([]);
-        }
-      } else {
-        // Pour admin, hr, finance - récupérer tous les stagiaires
-        result = await internService.getAll();
-        if (result.data) {
-          setInterns(result.data);
-        }
+      switch (user.role) {
+        case 'admin':
+        case 'hr':
+        case 'finance':
+          data = await ProductionService.getAllInterns();
+          break;
+        case 'tutor':
+          data = await ProductionService.getInternsByTutor(user.id);
+          break;
+        case 'intern':
+          const internData = await ProductionService.getInternByUserId(user.id);
+          data = internData ? [internData] : [];
+          break;
+        default:
+          data = [];
       }
 
-      if (result?.error) {
-        setError(result.error.message);
-      }
+      setInterns(data);
     } catch (err: any) {
+      console.error('Erreur lors du chargement des stagiaires:', err);
       setError(err.message || 'Erreur lors du chargement des stagiaires');
+      setInterns([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const createIntern = async (data: any): Promise<boolean> => {
-    try {
-      const result = await internService.create(data);
-      if (result.error) {
-        setError(result.error.message);
-        return false;
-      }
-      await fetchInterns(); // Recharger la liste
-      return true;
-    } catch (err: any) {
-      setError(err.message);
-      return false;
-    }
-  };
-
-  const updateIntern = async (id: string, data: any): Promise<boolean> => {
-    try {
-      // Logique de mise à jour à implémenter selon vos besoins
-      await fetchInterns(); // Recharger la liste
-      return true;
-    } catch (err: any) {
-      setError(err.message);
-      return false;
-    }
-  };
-
   useEffect(() => {
-    fetchInterns();
+    if (user) {
+      fetchInterns();
+    }
   }, [user]);
+
+  const createIntern = async (internData: Partial<ProductionIntern>) => {
+    try {
+      const newIntern = await ProductionService.createIntern(internData);
+      setInterns(prev => [newIntern, ...prev]);
+      return newIntern;
+    } catch (err: any) {
+      console.error('Erreur lors de la création du stagiaire:', err);
+      throw err;
+    }
+  };
+
+  const updateIntern = async (id: string, updates: Partial<ProductionIntern>) => {
+    try {
+      const updatedIntern = await ProductionService.updateIntern(id, updates);
+      setInterns(prev => prev.map(intern => 
+        intern.id === id ? updatedIntern : intern
+      ));
+      return updatedIntern;
+    } catch (err: any) {
+      console.error('Erreur lors de la mise à jour du stagiaire:', err);
+      throw err;
+    }
+  };
+
+  const refreshInterns = () => {
+    fetchInterns();
+  };
 
   return {
     interns,
     loading,
     error,
-    refetch: fetchInterns,
     createIntern,
     updateIntern,
+    refreshInterns
   };
 }

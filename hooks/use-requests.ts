@@ -1,18 +1,10 @@
+
 import { useState, useEffect } from 'react';
-import { requestService, Request } from '@/lib/supabase';
+import { ProductionService, ProductionRequest } from '@/lib/production-service';
 import { useAuthStore } from '@/store/auth-store';
 
-interface UseRequestsState {
-  requests: Request[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  createRequest: (data: any) => Promise<boolean>;
-  updateRequest: (id: string, data: any) => Promise<boolean>;
-}
-
-export function useRequests(): UseRequestsState {
-  const [requests, setRequests] = useState<Request[]>([]);
+export function useRequests() {
+  const [requests, setRequests] = useState<ProductionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -21,81 +13,92 @@ export function useRequests(): UseRequestsState {
     try {
       setLoading(true);
       setError(null);
-
+      
       if (!user) {
         setRequests([]);
         return;
       }
 
-      let result;
-      if (user.role === 'intern') {
-        // Pour les stagiaires, récupérer seulement leurs demandes
-        // D'abord récupérer l'ID de stage
-        const { data: internData } = await requestService.getAll();
-        if (internData) {
-          const userRequests = internData.filter((request: Request) => 
-            request.intern?.user_id === user.id
-          );
-          setRequests(userRequests);
-        }
-      } else {
-        // Pour les autres rôles, récupérer toutes les demandes
-        result = await requestService.getAll();
-        if (result.data) {
-          setRequests(result.data);
-        }
-      }
+      let data: ProductionRequest[] = [];
 
-      if (result?.error) {
-        setError(result.error.message);
+      switch (user.role) {
+        case 'admin':
+        case 'hr':
+        case 'finance':
+          data = await ProductionService.getAllRequests();
+          break;
+        case 'tutor':
+          // Get requests for interns supervised by this tutor
+          const tutorInterns = await ProductionService.getInternsByTutor(user.id);
+          const allRequests = await ProductionService.getAllRequests();
+          data = allRequests.filter(request => 
+            tutorInterns.some(intern => intern.id === request.intern_id)
+          );
+          break;
+        case 'intern':
+          // Get requests for this specific intern
+          const internData = await ProductionService.getInternByUserId(user.id);
+          if (internData) {
+            data = await ProductionService.getRequestsByIntern(internData.id);
+          }
+          break;
+        default:
+          data = [];
       }
+      
+      setRequests(data);
     } catch (err: any) {
+      console.error('Erreur lors du chargement des demandes:', err);
       setError(err.message || 'Erreur lors du chargement des demandes');
+      setRequests([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const createRequest = async (data: any): Promise<boolean> => {
-    try {
-      const result = await requestService.create(data);
-      if (result.error) {
-        setError(result.error.message);
-        return false;
-      }
-      await fetchRequests(); // Recharger la liste
-      return true;
-    } catch (err: any) {
-      setError(err.message);
-      return false;
-    }
-  };
-
-  const updateRequest = async (id: string, data: any): Promise<boolean> => {
-    try {
-      const result = await requestService.update(id, data);
-      if (result.error) {
-        setError(result.error.message);
-        return false;
-      }
-      await fetchRequests(); // Recharger la liste
-      return true;
-    } catch (err: any) {
-      setError(err.message);
-      return false;
-    }
-  };
-
   useEffect(() => {
-    fetchRequests();
+    if (user) {
+      fetchRequests();
+    }
   }, [user]);
+
+  const createRequest = async (requestData: Partial<ProductionRequest>) => {
+    try {
+      const newRequest = await ProductionService.createRequest(requestData);
+      setRequests(prev => [newRequest, ...prev]);
+      return newRequest;
+    } catch (err: any) {
+      console.error('Erreur lors de la création de la demande:', err);
+      throw err;
+    }
+  };
+
+  const updateRequest = async (id: string, updates: Partial<ProductionRequest>) => {
+    try {
+      const updatedRequest = await ProductionService.updateRequest(id, updates);
+      setRequests(prev => prev.map(request => 
+        request.id === id ? updatedRequest : request
+      ));
+      return updatedRequest;
+    } catch (err: any) {
+      console.error('Erreur lors de la mise à jour de la demande:', err);
+      throw err;
+    }
+  };
+
+  const refreshRequests = () => {
+    fetchRequests();
+  };
 
   return {
     requests,
     loading,
     error,
-    refetch: fetchRequests,
     createRequest,
     updateRequest,
+    refreshRequests
   };
 }
+
+// Export the Request type for compatibility
+export type Request = ProductionRequest;
