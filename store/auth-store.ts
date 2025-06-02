@@ -1,139 +1,136 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { User } from '@supabase/supabase-js';
-import type { ExtendedUser } from '@/types/auth';
-import { AuthService } from '@/lib/auth-service';
-import { supabase } from '@/lib/supabase';
 
-interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  signIn: (email: string, password: string) => Promise<boolean>;
+import { create } from 'zustand';
+import { createClient } from '@/lib/supabase/client';
+import type { ExtendedUser, AuthState } from '@/types/auth';
+
+interface AuthStore extends AuthState {
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<boolean>;
-  refreshUser: () => Promise<void>;
-  clearError: () => void;
-  initializeAuth: () => Promise<void>;
+  initialize: () => Promise<void>;
+  updateUser: (userData: Partial<ExtendedUser>) => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      loading: false,
-      error: null,
+export const useAuthStore = create<AuthStore>((set, get) => ({
+  user: null,
+  loading: false,
+  initialized: false,
 
-      signIn: async (email: string, password: string) => {
-        set({ loading: true, error: null });
-        try {
-          const result = await AuthService.signIn(email, password);
-          if (result?.user) {
-            // Get user profile from database
-            const { data: userData } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', result.user.id)
-              .single();
+  signIn: async (email: string, password: string) => {
+    set({ loading: true });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-            if (userData) {
-              set({ user: userData, loading: false });
-              return true;
-            }
-          }
-          set({ error: 'Échec de la connexion', loading: false });
-          return false;
-        } catch (error: any) {
-          set({ error: error.message || 'Erreur de connexion', loading: false });
-          return false;
-        }
-      },
+      if (error) {
+        set({ loading: false });
+        return { error: error.message };
+      }
 
-      signOut: async () => {
-        set({ loading: true });
-        try {
-          await AuthService.signOut();
-          set({ user: null, loading: false, error: null });
-        } catch (error: any) {
-          set({ error: error.message || 'Erreur de déconnexion', loading: false });
-        }
-      },
+      if (data.user) {
+        const extendedUser: ExtendedUser = {
+          ...data.user,
+          role: data.user.user_metadata?.role,
+          full_name: data.user.user_metadata?.full_name,
+        };
+        set({ user: extendedUser, loading: false });
+      }
 
-      signUp: async (email: string, password: string, fullName: string, role: string) => {
-        set({ loading: true, error: null });
-        try {
-          const userData = { full_name: fullName, role };
-          const result = await AuthService.signUp(email, password, userData);
-          if (result?.user) {
-            // Create user profile in database
-            const { data: newUser } = await supabase
-              .from('users')
-              .insert({
-                id: result.user.id,
-                email: result.user.email,
-                full_name: fullName,
-                role: role as any
-              })
-              .select()
-              .single();
-
-            if (newUser) {
-              set({ user: newUser, loading: false });
-              return true;
-            }
-          }
-          set({ error: 'Échec de l\'inscription', loading: false });
-          return false;
-        } catch (error: any) {
-          set({ error: error.message || 'Erreur d\'inscription', loading: false });
-          return false;
-        }
-      },
-
-      refreshUser: async () => {
-        const currentUser = get().user;
-        if (currentUser) {
-          try {
-            const refreshedUser = await AuthService.refreshUser(currentUser.id);
-            if (refreshedUser) {
-              set({ user: refreshedUser });
-            }
-          } catch (error) {
-            console.error('Failed to refresh user:', error);
-          }
-        }
-      },
-
-      clearError: () => set({ error: null }),
-
-      initializeAuth: async () => {
-        set({ loading: true });
-        try {
-          const session = await AuthService.getSession();
-          if (session?.user) {
-            const { data: userData } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (userData) {
-              set({ user: userData, loading: false });
-            } else {
-              set({ user: null, loading: false });
-            }
-          } else {
-            set({ user: null, loading: false });
-          }
-        } catch (error) {
-          console.error('Auth initialization error:', error);
-          set({ user: null, loading: false });
-        }
-      },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({ user: state.user }),
+      return {};
+    } catch (error) {
+      set({ loading: false });
+      return { error: 'Une erreur est survenue lors de la connexion' };
     }
-  )
-);
+  },
+
+  signUp: async (email: string, password: string, userData = {}) => {
+    set({ loading: true });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+        },
+      });
+
+      if (error) {
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      if (data.user) {
+        const extendedUser: ExtendedUser = {
+          ...data.user,
+          role: userData.role,
+          full_name: userData.full_name,
+        };
+        set({ user: extendedUser, loading: false });
+      }
+
+      return {};
+    } catch (error) {
+      set({ loading: false });
+      return { error: 'Une erreur est survenue lors de l\'inscription' };
+    }
+  },
+
+  signOut: async () => {
+    set({ loading: true });
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      set({ user: null, loading: false });
+    } catch (error) {
+      set({ loading: false });
+    }
+  },
+
+  initialize: async () => {
+    if (get().initialized) return;
+    
+    set({ loading: true });
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const extendedUser: ExtendedUser = {
+          ...user,
+          role: user.user_metadata?.role,
+          full_name: user.user_metadata?.full_name,
+        };
+        set({ user: extendedUser, loading: false, initialized: true });
+      } else {
+        set({ user: null, loading: false, initialized: true });
+      }
+
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+          const extendedUser: ExtendedUser = {
+            ...session.user,
+            role: session.user.user_metadata?.role,
+            full_name: session.user.user_metadata?.full_name,
+          };
+          set({ user: extendedUser });
+        } else {
+          set({ user: null });
+        }
+      });
+    } catch (error) {
+      set({ user: null, loading: false, initialized: true });
+    }
+  },
+
+  updateUser: (userData: Partial<ExtendedUser>) => {
+    const currentUser = get().user;
+    if (currentUser) {
+      set({ user: { ...currentUser, ...userData } });
+    }
+  },
+}));

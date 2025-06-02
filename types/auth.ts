@@ -1,17 +1,7 @@
 
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 
-export interface UserWithMetadata extends SupabaseUser {
-  user_metadata?: {
-    avatar_url?: string;
-    full_name?: string;
-    [key: string]: any;
-  };
-}
-
-export interface ExtendedUser {
-  id: string;
-  email?: string;
+export interface ExtendedUser extends User {
   role?: string;
   full_name?: string;
   avatar?: string;
@@ -20,4 +10,10 @@ export interface ExtendedUser {
     full_name?: string;
     [key: string]: any;
   };
+}
+
+export interface AuthState {
+  user: ExtendedUser | null;
+  loading: boolean;
+  initialized: boolean;
 }

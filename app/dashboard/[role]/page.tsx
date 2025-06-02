@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -7,14 +8,17 @@ import { useInterns } from '@/hooks/use-interns';
 import { useRequests } from '@/hooks/use-requests';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UserWelcome } from '@/components/dashboard/user-welcome';
 
 export default function RoleDashboard({ params }: { params: { role: string } }) {
-  const { user } = useAuthStore();
+  const { user, initialize } = useAuthStore();
   const { interns, loading: internsLoading, error: internsError } = useInterns();
   const { requests, loading: requestsLoading, error: requestsError } = useRequests();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,10 +41,7 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
 
   return (
     <div className="space-y-6">
-      <UserWelcome user={{
-        ...user,
-        avatar: user.user_metadata?.avatar_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-      } as ExtendedUser} />
+      <UserWelcome user={user} />
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -125,7 +126,7 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
               {interns.slice(0, 5).map((intern) => (
                 <div key={intern.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-medium">{intern.user?.full_name}</h3>
+                    <h3 className="font-medium">{intern.user?.full_name || 'Nom non disponible'}</h3>
                     <p className="text-sm text-gray-500">{intern.department}</p>
                     <p className="text-sm text-gray-500">{intern.university}</p>
                   </div>
