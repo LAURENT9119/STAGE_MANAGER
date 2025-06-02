@@ -1,0 +1,115 @@
+[13:23:20.768] Running build in Washington, D.C., USA (East) – iad1
+[13:23:20.768] Build machine configuration: 2 cores, 8 GB
+[13:23:20.804] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: 79d39b1)
+[13:23:21.161] Previous build caches not available
+[13:23:21.293] Cloning completed: 487.000ms
+[13:23:21.605] Running "vercel build"
+[13:23:22.057] Vercel CLI 42.2.0
+[13:23:22.374] Warning: Detected "engines": { "node": ">=18.17.0" } in your `package.json` that will automatically upgrade when a new major Node.js Version is released. Learn More: http://vercel.link/node-version
+[13:23:22.383] Running "install" command: `npm install`...
+[13:24:05.075] 
+[13:24:05.076] > nextjs-internship-management@0.1.0 postinstall
+[13:24:05.077] > npm audit fix --force || true
+[13:24:05.077] 
+[13:24:05.179] npm warn using --force Recommended protections disabled.
+[13:24:08.485] 
+[13:24:08.488] added 4 packages, and audited 533 packages in 3s
+[13:24:08.489] 
+[13:24:08.489] 163 packages are looking for funding
+[13:24:08.490]   run `npm fund` for details
+[13:24:08.490] 
+[13:24:08.492] found 0 vulnerabilities
+[13:24:08.639] 
+[13:24:08.640] added 528 packages, and audited 529 packages in 46s
+[13:24:08.640] 
+[13:24:08.640] 161 packages are looking for funding
+[13:24:08.640]   run `npm fund` for details
+[13:24:08.646] 
+[13:24:08.646] found 0 vulnerabilities
+[13:24:08.692] Detected Next.js version: 15.3.3
+[13:24:08.693] Running "npm install && npm run build"
+[13:24:10.381] 
+[13:24:10.383] > nextjs-internship-management@0.1.0 postinstall
+[13:24:10.383] > npm audit fix --force || true
+[13:24:10.383] 
+[13:24:10.497] npm warn using --force Recommended protections disabled.
+[13:24:12.115] 
+[13:24:12.116] up to date, audited 287 packages in 2s
+[13:24:12.116] 
+[13:24:12.116] 42 packages are looking for funding
+[13:24:12.116]   run `npm fund` for details
+[13:24:12.116] 
+[13:24:12.116] found 0 vulnerabilities
+[13:24:12.137] 
+[13:24:12.137] up to date, audited 287 packages in 3s
+[13:24:12.137] 
+[13:24:12.137] 42 packages are looking for funding
+[13:24:12.137]   run `npm fund` for details
+[13:24:12.139] 
+[13:24:12.139] found 0 vulnerabilities
+[13:24:12.271] 
+[13:24:12.271] > nextjs-internship-management@0.1.0 build
+[13:24:12.271] > next build
+[13:24:12.271] 
+[13:24:13.428] Attention: Next.js now collects completely anonymous telemetry regarding usage.
+[13:24:13.429] This information is used to shape Next.js' roadmap and prioritize features.
+[13:24:13.429] You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[13:24:13.430] https://nextjs.org/telemetry
+[13:24:13.430] 
+[13:24:13.491]    ▲ Next.js 15.3.3
+[13:24:13.494]    - Environments: .env.local
+[13:24:13.494]    - Experiments (use with caution):
+[13:24:13.496]      ✓ forceSwcTransforms
+[13:24:13.496] 
+[13:24:13.567]    Creating an optimized production build ...
+[13:24:25.915] Failed to compile.
+[13:24:25.916] 
+[13:24:25.916] app/layout.tsx
+[13:24:25.916] An error occurred in `next/font`.
+[13:24:25.917] 
+[13:24:25.917] Error: Cannot find module 'autoprefixer'
+[13:24:25.917] Require stack:
+[13:24:25.917] - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+[13:24:25.918] - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+[13:24:25.918] - /vercel/path0/node_modules/next/dist/build/webpack/config/index.js
+[13:24:25.918] - /vercel/path0/node_modules/next/dist/build/webpack-config.js
+[13:24:25.918] - /vercel/path0/node_modules/next/dist/build/webpack/plugins/next-trace-entrypoints-plugin.js
+[13:24:25.919] - /vercel/path0/node_modules/next/dist/build/collect-build-traces.js
+[13:24:25.919] - /vercel/path0/node_modules/next/dist/build/index.js
+[13:24:25.919] - /vercel/path0/node_modules/next/dist/cli/next-build.js
+[13:24:25.919]     at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+[13:24:25.920]     at /vercel/path0/node_modules/next/dist/server/require-hook.js:55:36
+[13:24:25.920]     at Function.resolve (node:internal/modules/helpers:145:19)
+[13:24:25.920]     at loadPlugin (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:53:32)
+[13:24:25.920]     at /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:56
+[13:24:25.920]     at Array.map (<anonymous>)
+[13:24:25.920]     at getPostCssPlugins (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:47)
+[13:24:25.920]     at async /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js:125:36
+[13:24:25.920]     at async /vercel/path0/node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js:94:33
+[13:24:25.921]     at async Span.traceAsyncFn (/vercel/path0/node_modules/next/dist/trace/trace.js:157:20)
+[13:24:25.921] 
+[13:24:25.921] ./app/auth/login/page.tsx
+[13:24:25.921] Module not found: Can't resolve '@/store/auth-store'
+[13:24:25.921] 
+[13:24:25.921] https://nextjs.org/docs/messages/module-not-found
+[13:24:25.921] 
+[13:24:25.921] ./app/auth/login/page.tsx
+[13:24:25.921] Module not found: Can't resolve '@/components/ui/button'
+[13:24:25.921] 
+[13:24:25.921] https://nextjs.org/docs/messages/module-not-found
+[13:24:25.921] 
+[13:24:25.921] ./app/auth/login/page.tsx
+[13:24:25.921] Module not found: Can't resolve '@/components/ui/input'
+[13:24:25.921] 
+[13:24:25.921] https://nextjs.org/docs/messages/module-not-found
+[13:24:25.921] 
+[13:24:25.922] ./app/auth/login/page.tsx
+[13:24:25.922] Module not found: Can't resolve '@/components/ui/label'
+[13:24:25.922] 
+[13:24:25.922] https://nextjs.org/docs/messages/module-not-found
+[13:24:25.922] 
+[13:24:25.922] 
+[13:24:25.922] > Build failed because of webpack errors
+[13:24:25.970] Error: Command "npm install && npm run build" exited with 1
+[13:24:26.543] 
+[13:24:30.149] Exiting build container
