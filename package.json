@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "postinstall": "npm install --package-lock-only && npm audit fix --force || true",
+    "postinstall": "npm audit fix --force || true",
     "sync-lock": "rm -f package-lock.json && npm install"
   },
   "dependencies": {
