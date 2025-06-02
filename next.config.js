@@ -1,9 +1,7 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["@supabase/supabase-js"],
-  },
+  serverExternalPackages: ["@supabase/supabase-js"],
   images: {
     remotePatterns: [
       {
@@ -15,7 +13,6 @@ const nextConfig = {
     ],
   },
   // Production optimizations
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
@@ -68,6 +65,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
         ],
       },
