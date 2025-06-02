@@ -145,7 +145,7 @@ export default function HRDocumentsPage() {
 
     try {
       const intern = interns.find(i => i.id === newDocument.internId);
-      if (!intern) return;
+      if (!intern || !intern.user) return;
 
       const document: Document = {
         id: Date.now().toString(),
