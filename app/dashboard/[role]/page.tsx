@@ -1,42 +1,76 @@
 
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { ProductionService, DashboardStats } from '@/lib/production-service';
+import { MainNav } from '@/components/layout/main-nav';
+import { DashboardNav } from '@/components/layout/dashboard-nav';
+import { SiteFooter } from '@/components/layout/site-footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UserWelcome } from '@/components/dashboard/user-welcome';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   UserCheck, 
+  UserX, 
   FileText, 
   Clock, 
-  TrendingUp, 
+  CheckCircle, 
+  XCircle,
+  TrendingUp,
+  Calendar,
   Award,
-  Building,
-  Calendar
+  Bell
 } from 'lucide-react';
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export default function RoleDashboard({ params }: { params: { role: string } }) {
-  const { user, initializeAuth } = useAuthStore();
+const roleNames = {
+  admin: 'Administrateur',
+  hr: 'Ressources Humaines',
+  tutor: 'Tuteur',
+  intern: 'Stagiaire',
+  finance: 'Finance'
+};
+
+const roleDescriptions = {
+  admin: 'Gérez l\'ensemble de la plateforme et des utilisateurs',
+  hr: 'Gérez les stagiaires et les processus RH',
+  tutor: 'Suivez vos stagiaires et leurs demandes',
+  intern: 'Gérez votre stage et vos demandes',
+  finance: 'Gérez les aspects financiers des stages'
+};
+
+export default function RoleDashboard() {
+  const params = useParams();
+  const router = useRouter();
+  const { user, isAuthenticated, loading: authLoading } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+  const role = params.role as string;
 
   useEffect(() => {
-    if (user) {
-      loadDashboardStats();
+    if (!authLoading && !isAuthenticated) {
+      router.push('/auth/login');
+      return;
     }
-  }, [user]);
 
-  const loadDashboardStats = async () => {
+    if (user && user.role !== role) {
+      router.push(`/dashboard/${user.role}`);
+      return;
+    }
+
+    if (user && isAuthenticated) {
+      loadDashboardData();
+    }
+  }, [user, isAuthenticated, authLoading, role, router]);
+
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -50,303 +84,425 @@ export default function RoleDashboard({ params }: { params: { role: string } }) 
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'upcoming': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatsForRole = () => {
-    if (!stats) return [];
-
-    const commonStats = [
-      {
-        title: user?.role === 'intern' ? 'Mon statut' : 'Stagiaires actifs',
-        value: stats.activeInterns,
-        icon: UserCheck,
-        color: 'text-green-600'
-      },
-      {
-        title: user?.role === 'intern' ? 'Mes demandes' : 'Demandes en attente',
-        value: stats.pendingRequests,
-        icon: Clock,
-        color: 'text-yellow-600'
-      }
-    ];
-
-    switch (user?.role) {
-      case 'admin':
-      case 'hr':
-        return [
-          ...commonStats,
-          {
-            title: 'Total stagiaires',
-            value: stats.totalInterns,
-            icon: Users,
-            color: 'text-blue-600'
-          },
-          {
-            title: 'Total utilisateurs',
-            value: stats.totalUsers,
-            icon: Users,
-            color: 'text-purple-600'
-          },
-          {
-            title: 'Total demandes',
-            value: stats.totalRequests,
-            icon: FileText,
-            color: 'text-gray-600'
-          },
-          {
-            title: 'Note moyenne',
-            value: stats.averageEvaluationScore ? `${stats.averageEvaluationScore}/5` : 'N/A',
-            icon: Award,
-            color: 'text-orange-600'
-          }
-        ];
-      
-      case 'tutor':
-        return [
-          ...commonStats,
-          {
-            title: 'Mes stagiaires',
-            value: stats.totalInterns,
-            icon: Users,
-            color: 'text-blue-600'
-          },
-          {
-            title: 'Stagiaires terminés',
-            value: stats.completedInterns,
-            icon: Award,
-            color: 'text-green-600'
-          }
-        ];
-      
-      case 'intern':
-        return [
-          {
-            title: 'Mon statut',
-            value: stats.activeInterns > 0 ? 'Actif' : 'Inactif',
-            icon: UserCheck,
-            color: stats.activeInterns > 0 ? 'text-green-600' : 'text-gray-600'
-          },
-          {
-            title: 'Mes demandes',
-            value: stats.totalRequests,
-            icon: FileText,
-            color: 'text-blue-600'
-          },
-          {
-            title: 'En attente',
-            value: stats.pendingRequests,
-            icon: Clock,
-            color: 'text-yellow-600'
-          },
-          {
-            title: 'Approuvées',
-            value: stats.approvedRequests,
-            icon: Award,
-            color: 'text-green-600'
-          }
-        ];
-      
-      default:
-        return commonStats;
-    }
-  };
-
-  if (!user) {
+  if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement du tableau de bord...</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <UserWelcome user={user} />
-
-      {/* Affichage des erreurs */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          getStatsForRole().map((stat, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Statistiques détaillées pour admin/hr */}
-      {(['admin', 'hr'].includes(user.role)) && stats && (
-        <>
-          {/* Statistiques par département */}
-          {stats.departmentStats.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  Répartition par département
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {stats.departmentStats.map((dept) => (
-                    <div key={dept.department} className="flex items-center justify-between p-3 border rounded-lg">
-                      <span className="font-medium">{dept.department}</span>
-                      <Badge variant="secondary">{dept.count} stagiaires</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Statistiques par type de demande */}
-          {stats.requestsByType.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Demandes par type
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {stats.requestsByType.map((request) => (
-                    <div key={request.type} className="flex items-center justify-between p-3 border rounded-lg">
-                      <span className="font-medium capitalize">{request.type}</span>
-                      <Badge variant="outline">{request.count}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Évolution mensuelle */}
-          {stats.monthlyInternships.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Évolution mensuelle des stages
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stats.monthlyInternships.map((month) => (
-                    <div key={month.month} className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{month.month}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ 
-                              width: `${Math.min((month.count / Math.max(...stats.monthlyInternships.map(m => m.count))) * 100, 100)}%` 
-                            }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-600">{month.count}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
-
-      {/* Métriques de performance */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Métriques de performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {stats.averageInternDuration > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Durée moyenne des stages</span>
-                  <span className="font-medium">{stats.averageInternDuration} jours</span>
-                </div>
-              )}
-              {stats.averageEvaluationScore > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Note d'évaluation moyenne</span>
-                  <span className="font-medium">{stats.averageEvaluationScore}/5</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Taux d'achèvement</span>
-                <span className="font-medium">
-                  {stats.totalInterns > 0 
-                    ? Math.round((stats.completedInterns / stats.totalInterns) * 100)
-                    : 0
-                  }%
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Résumé des statuts */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Résumé des statuts</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { label: 'Actifs', value: stats.activeInterns, status: 'active' },
-                { label: 'À venir', value: stats.upcomingInterns, status: 'upcoming' },
-                { label: 'Terminés', value: stats.completedInterns, status: 'completed' }
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                  <Badge className={getStatusColor(item.status)}>
-                    {item.value}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <XCircle className="h-12 w-12 text-red-500 mx-auto" />
+          <p className="mt-4 text-red-600">{error}</p>
+          <Button onClick={loadDashboardData} className="mt-4">
+            Réessayer
+          </Button>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Aucune donnée disponible</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getMainCards = () => {
+    switch (role) {
+      case 'admin':
+      case 'hr':
+        return (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Stagiaires</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalInterns}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.activeInterns} actifs
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Demandes en attente</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+                <p className="text-xs text-muted-foreground">
+                  Sur {stats.totalRequests} demandes
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Utilisateurs</CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.tutorCount} tuteurs
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.averageEvaluationScore || 0}/5</div>
+                <p className="text-xs text-muted-foreground">
+                  Évaluations stagiaires
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        );
+      case 'tutor':
+        return (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Mes Stagiaires</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalInterns}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.activeInterns} en cours
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Demandes à traiter</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+                <p className="text-xs text-muted-foreground">
+                  En attente de validation
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Stagiaires terminés</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.completedInterns}</div>
+                <p className="text-xs text-muted-foreground">
+                  Stages achevés
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.averageEvaluationScore || 0}/5</div>
+                <p className="text-xs text-muted-foreground">
+                  Mes évaluations
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        );
+      case 'intern':
+        return (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Mon Stage</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.activeInterns > 0 ? 'En cours' : 'Inactif'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Statut actuel
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Mes Demandes</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalRequests}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.pendingRequests} en attente
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Demandes approuvées</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.approvedRequests}</div>
+                <p className="text-xs text-muted-foreground">
+                  Validées
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ma Note</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.averageEvaluationScore || 'N/A'}</div>
+                <p className="text-xs text-muted-foreground">
+                  Évaluation actuelle
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        );
+      case 'finance':
+        return (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Stagiaires actifs</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeInterns}</div>
+                <p className="text-xs text-muted-foreground">
+                  À rémunérer
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Demandes finance</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+                <p className="text-xs text-muted-foreground">
+                  À traiter
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Durée moyenne</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.averageInternDuration || 0}j</div>
+                <p className="text-xs text-muted-foreground">
+                  Durée des stages
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total stages</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalInterns}</div>
+                <p className="text-xs text-muted-foreground">
+                  Cette année
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <MainNav role={role} />
+        </div>
+      </header>
+      
+      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
+        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r">
+          <DashboardNav role={role} />
+        </aside>
+        
+        <main className="flex w-full flex-col overflow-hidden py-6">
+          <div className="space-y-8">
+            {/* Header */}
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Tableau de bord - {roleNames[role as keyof typeof roleNames]}
+              </h1>
+              <p className="text-muted-foreground">
+                {roleDescriptions[role as keyof typeof roleDescriptions]}
+              </p>
+            </div>
+
+            {/* Main Stats */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {getMainCards()}
+            </div>
+
+            {/* Charts and Details */}
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+                <TabsTrigger value="analytics">Analyses</TabsTrigger>
+                <TabsTrigger value="activity">Activité récente</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                  <Card className="col-span-4">
+                    <CardHeader>
+                      <CardTitle>Évolution mensuelle</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pl-2">
+                      <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={stats.monthlyInternships}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#8884d8" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="col-span-3">
+                    <CardHeader>
+                      <CardTitle>Répartition par département</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {stats.departmentStats.slice(0, 5).map((dept) => (
+                          <div key={dept.department} className="flex items-center">
+                            <div className="w-32 text-sm">{dept.department}</div>
+                            <div className="flex-1 mx-4">
+                              <Progress 
+                                value={(dept.count / stats.totalInterns) * 100} 
+                                className="h-2" 
+                              />
+                            </div>
+                            <div className="text-sm font-medium">{dept.count}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="analytics" className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Types de demandes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {stats.requestsByType.map((req) => (
+                          <div key={req.type} className="flex items-center justify-between">
+                            <span className="text-sm capitalize">{req.type}</span>
+                            <Badge variant="secondary">{req.count}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Statistiques clés</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between">
+                        <span>Durée moyenne des stages</span>
+                        <span className="font-medium">{stats.averageInternDuration} jours</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Note d'évaluation moyenne</span>
+                        <span className="font-medium">{stats.averageEvaluationScore || 'N/A'}/5</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Taux d'approbation</span>
+                        <span className="font-medium">
+                          {stats.totalRequests > 0 
+                            ? Math.round((stats.approvedRequests / stats.totalRequests) * 100)
+                            : 0}%
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="activity" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Activité récente</CardTitle>
+                    <CardDescription>
+                      Les dernières actions sur la plateforme
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {stats.recentActivity.length > 0 ? (
+                        stats.recentActivity.map((activity, index) => (
+                          <div key={index} className="flex items-center gap-4">
+                            <Bell className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex-1">
+                              <p className="text-sm">{activity.action}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(activity.date).toLocaleDateString('fr-FR')}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Aucune activité récente
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+      
+      <SiteFooter />
     </div>
   );
 }

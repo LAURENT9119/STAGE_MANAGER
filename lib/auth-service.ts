@@ -1,9 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createClient } from '@/lib/supabase/client';
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient();
 
 class AuthService {
   static async signIn(email: string, password: string) {
@@ -14,9 +12,9 @@ class AuthService {
       });
       if (error) throw error;
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign in error:', error);
-      throw error;
+      throw new Error(error.message || 'Erreur de connexion');
     }
   }
 
@@ -26,14 +24,17 @@ class AuthService {
         email,
         password,
         options: {
-          data: userData
+          data: {
+            full_name: userData.full_name,
+            role: userData.role
+          }
         }
       });
       if (error) throw error;
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign up error:', error);
-      throw error;
+      throw new Error(error.message || 'Erreur d\'inscription');
     }
   }
 
@@ -41,28 +42,32 @@ class AuthService {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign out error:', error);
-      throw error;
+      throw new Error(error.message || 'Erreur de déconnexion');
     }
   }
 
   static async getCurrentUser() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
 
       if (!user) return null;
 
-      const { data: userData, error } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        return { user, userData: null };
+      }
 
       return { user, userData };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get current user error:', error);
       return null;
     }
@@ -72,25 +77,25 @@ class AuthService {
     try {
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', userId)
         .select()
         .single();
 
       if (error) throw error;
-
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update profile error:', error);
-      throw error;
+      throw new Error(error.message || 'Erreur de mise à jour');
     }
   }
 
   static async getSession() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
       return session;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get session error:', error);
       return null;
     }
@@ -106,13 +111,12 @@ class AuthService {
 
       if (error) throw error;
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Refresh user error:', error);
       return null;
     }
   }
 }
 
-// Export both the class and an instance
 export { AuthService };
 export const authService = AuthService;
