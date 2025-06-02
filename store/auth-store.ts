@@ -73,50 +73,103 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Alias pour compatibilité avec les pages existantes
       signIn: async (email: string, password: string) => {
-        set({ isLoading: true });
+        set({ loading: true, error: null });
         try {
-          // Simulation d'authentification - à remplacer par votre logique réelle
-          const mockUser: User = {
-            id: '1',
-            email,
-            role: 'tutor',
-            firstName: 'Utilisateur',
-            lastName: 'Test'
-          };
+          const { AuthService } = await import('@/lib/auth-service');
+          const result = await AuthService.signIn(email, password);
+
+          if (result?.user) {
+            // Récupérer les données utilisateur complètes
+            const userData = await AuthService.getCurrentUser();
+            if (userData?.userData) {
+              const user: User = {
+                id: userData.userData.id,
+                email: userData.userData.email,
+                role: userData.userData.role,
+                firstName: userData.userData.full_name,
+                lastName: '',
+                // full_name: userData.userData.full_name,
+                // role: userData.userData.role,
+                // created_at: userData.userData.created_at,
+                // updated_at: userData.userData.updated_at,
+                // avatar_url: userData.userData.avatar_url,
+                // phone: userData.userData.phone,
+                // department: userData.userData.department,
+                // position: userData.userData.position
+              };
+              set({ 
+                user, 
+                isAuthenticated: true, 
+                loading: false 
+              });
+              return true;
+            }
+          }
+          throw new Error('Identifiants invalides');
+        } catch (error: any) {
           set({ 
-            user: mockUser, 
-            isAuthenticated: true,
-            isLoading: false 
+            loading: false, 
+            error: error.message || 'Erreur de connexion' 
           });
-          return true;
-        } catch (error) {
-          set({ isLoading: false });
           return false;
         }
       },
 
       signUp: async (email: string, password: string, fullName: string, role: string) => {
-        set({ isLoading: true });
+        set({ loading: true, error: null });
         try {
-          // Simulation d'inscription - à remplacer par votre logique réelle
-          const [firstName, lastName] = fullName.split(' ');
-          const mockUser: User = {
-            id: Date.now().toString(),
-            email,
-            role: role as User['role'],
-            firstName: firstName || fullName,
-            lastName: lastName || ''
-          };
-          set({ 
-            user: mockUser, 
-            isAuthenticated: true,
-            isLoading: false 
+          const { AuthService } = await import('@/lib/auth-service');
+          const result = await AuthService.signUp(email, password, {
+            full_name: fullName,
+            role: role
           });
-          return true;
-        } catch (error) {
-          set({ isLoading: false });
+
+          if (result?.user) {
+            // Créer l'entrée dans la table users
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .insert({
+                id: result.user.id,
+                email: result.user.email,
+                full_name: fullName,
+                role: role,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (userError) throw userError;
+
+            const user: User = {
+              id: userData.id,
+              email: userData.email,
+              role: userData.role,
+              firstName: userData.full_name,
+              lastName: ''
+              // full_name: userData.full_name,
+              // role: userData.role,
+              // created_at: userData.created_at,
+              // updated_at: userData.updated_at
+            };
+
+            set({ 
+              user, 
+              isAuthenticated: true, 
+              loading: false 
+            });
+            return true;
+          }
+          throw new Error('Erreur lors de l\'inscription');
+        } catch (error: any) {
+          set({ 
+            loading: false, 
+            error: error.message || 'Erreur d\'inscription' 
+          });
           return false;
         }
       },
