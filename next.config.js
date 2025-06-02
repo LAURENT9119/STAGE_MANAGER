@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -22,18 +23,56 @@ const nextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
-
-  // Remove duplicate headers and redirects since they're in vercel.json
   typescript: {
     ignoreBuildErrors: false,
   },
   eslint: {
     ignoreDuringBuilds: false,
   },
-  webpack: (config) => {
-    config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
+    }
     return config;
-  }
+  },
+  // Vercel-specific optimizations
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/dashboard/intern',
+        permanent: false,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig
