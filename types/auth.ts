@@ -16,4 +16,5 @@ export interface AuthState {
   user: ExtendedUser | null;
   loading: boolean;
   initialized: boolean;
+  error: string | null;
 }

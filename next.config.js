@@ -3,6 +3,14 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
   images: {
     remotePatterns: [
@@ -35,10 +43,7 @@ const nextConfig = {
     }
     return config;
   },
-  // Vercel-specific optimizations
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
+  
   async headers() {
     return [
       {

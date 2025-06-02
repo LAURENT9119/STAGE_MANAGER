@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { createClient } from '@/lib/supabase/client';
 import type { ExtendedUser, AuthState } from '@/types/auth';
@@ -9,12 +8,14 @@ interface AuthStore extends AuthState {
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
   updateUser: (userData: Partial<ExtendedUser>) => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   loading: false,
   initialized: false,
+  error: null,
 
   signIn: async (email: string, password: string) => {
     set({ loading: true });
@@ -26,7 +27,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       if (error) {
-        set({ loading: false });
+        set({ loading: false, error: error.message });
         return { error: error.message };
       }
 
@@ -41,7 +42,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       return {};
     } catch (error) {
-      set({ loading: false });
+      set({ loading: false, error: 'Une erreur est survenue lors de la connexion' });
       return { error: 'Une erreur est survenue lors de la connexion' };
     }
   },
@@ -59,7 +60,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
 
       if (error) {
-        set({ loading: false });
+        set({ loading: false, error: error.message });
         return { error: error.message };
       }
 
@@ -74,7 +75,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       return {};
     } catch (error) {
-      set({ loading: false });
+      set({ loading: false, error: 'Une erreur est survenue lors de l\'inscription' });
       return { error: 'Une erreur est survenue lors de l\'inscription' };
     }
   },
@@ -86,13 +87,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       await supabase.auth.signOut();
       set({ user: null, loading: false });
     } catch (error) {
-      set({ loading: false });
+      set({ loading: false, error: 'Erreur lors de la déconnexion' });
     }
   },
 
   initialize: async () => {
     if (get().initialized) return;
-    
+
     set({ loading: true });
     try {
       const supabase = createClient();
@@ -123,7 +124,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         }
       });
     } catch (error) {
-      set({ user: null, loading: false, initialized: true });
+      set({ user: null, loading: false, initialized: true, error: 'Erreur lors de l\'initialisation' });
     }
   },
 
@@ -133,4 +134,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ user: { ...currentUser, ...userData } });
     }
   },
-}));
+
+  clearError: () => {
+    set({ error: null });
+  },
+});
