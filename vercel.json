@@ -1,27 +1,7 @@
-
 {
+  "buildCommand": "npm install && npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm ci --legacy-peer-deps",
-  "functions": {
-    "app/**/*.{js,ts,tsx}": {
-      "maxDuration": 30
-    }
-  },
-  "regions": ["iad1"],
-  "github": {
-    "silent": true
-  },
-  "env": {
-    "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "SKIP_ENV_VALIDATION": "1"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "NEXT_TELEMETRY_DISABLED": "1",
-      "SKIP_ENV_VALIDATION": "1"
-    }
-  }
+  "regions": ["iad1"]
 }
