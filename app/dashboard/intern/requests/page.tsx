@@ -192,16 +192,19 @@ export default function InternRequestsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <MainNav />
-
-      <div className="flex-1 flex">
-        <aside className="w-64 border-r bg-muted/10">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <MainNav role="intern" />
+        </div>
+      </header>
+      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
+        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r">
           <DashboardNav role="intern" />
         </aside>
 
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
+        <main className="flex w-full flex-col overflow-hidden py-6">
+          <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">Mes Demandes</h1>
@@ -350,7 +353,7 @@ export default function InternRequestsPage() {
         </main>
       </div>
 
-      <SiteFooter />r />
+      <SiteFooter />
     </div>
   );
 }

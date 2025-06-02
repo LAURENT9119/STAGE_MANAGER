@@ -46,7 +46,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
-          <MainNav />
+          <MainNav role={user.role} />
           <div className="ml-auto flex items-center space-x-4">
             <span className="text-sm text-muted-foreground">
               {user.full_name} ({user.role.toUpperCase()})
@@ -56,7 +56,7 @@ export default function DashboardLayout({
       </header>
       <div className="flex flex-1">
         <aside className="w-64 border-r bg-muted/10">
-          <DashboardNav userRole={user.role} />
+          <DashboardNav role={user.role} />
         </aside>
         <main className="flex-1">
           {children}

@@ -57,7 +57,7 @@ export function MainNav({ role }: MainNavProps) {
     ],
   };
 
-  const links = role ? roleLinks[role] : [];
+  const links = role ? (roleLinks[role] || []) : [];
 
   return (
     <div className="flex items-center justify-between">
