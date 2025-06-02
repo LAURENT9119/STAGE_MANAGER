@@ -29,6 +29,8 @@ class AuthService {
   static async signUp(email: string, password: string, userData: any) {
     try {
       const supabase = getSupabaseClient();
+      
+      // Inscription de l'utilisateur
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -39,7 +41,34 @@ class AuthService {
           }
         }
       });
+      
       if (error) throw error;
+      
+      // Si l'utilisateur est créé, créer son profil
+      if (data.user) {
+        // Attendre un peu pour que Supabase traite l'inscription
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Créer le profil utilisateur manuellement si le trigger n'a pas fonctionné
+        const { error: profileError } = await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: userData.full_name,
+            role: userData.role,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+          
+        if (profileError) {
+          console.warn('Profile creation warning:', profileError);
+          // Ne pas lever d'erreur car l'authentification a réussi
+        }
+      }
+      
       return data;
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -74,6 +103,30 @@ class AuthService {
 
       if (userError) {
         console.error('Error fetching user data:', userError);
+        
+        // Si l'utilisateur n'existe pas dans la table users, le créer
+        if (userError.code === 'PGRST116') {
+          const { data: newUserData, error: createError } = await supabase
+            .from('users')
+            .insert({
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || 'Utilisateur',
+              role: user.user_metadata?.role || 'intern',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error('Error creating user profile:', createError);
+            return { user, userData: null };
+          }
+          
+          return { user, userData: newUserData };
+        }
+        
         return { user, userData: null };
       }
 

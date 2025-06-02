@@ -89,10 +89,17 @@ export const useAuthStore = create<AuthState>()(
             });
 
             if (result?.user) {
-              // Attendre un peu que le trigger crée l'entrée
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              // Attendre que le profil soit créé
+              await new Promise(resolve => setTimeout(resolve, 2000));
 
-              const userData = await AuthService.getCurrentUser();
+              // Réessayer plusieurs fois si nécessaire
+              let userData = null;
+              for (let i = 0; i < 3; i++) {
+                userData = await AuthService.getCurrentUser();
+                if (userData?.userData) break;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+
               if (userData?.userData) {
                 const user: User = {
                   id: userData.userData.id,
@@ -110,6 +117,23 @@ export const useAuthStore = create<AuthState>()(
 
                 set({ 
                   user, 
+                  isAuthenticated: true, 
+                  loading: false 
+                });
+                return true;
+              } else {
+                // Créer un utilisateur de base si le profil n'a pas pu être récupéré
+                const basicUser: User = {
+                  id: result.user.id,
+                  email: result.user.email || email,
+                  role: role as any,
+                  firstName: fullName.split(' ')[0] || fullName,
+                  lastName: fullName.split(' ').slice(1).join(' ') || '',
+                  full_name: fullName
+                };
+
+                set({ 
+                  user: basicUser, 
                   isAuthenticated: true, 
                   loading: false 
                 });
