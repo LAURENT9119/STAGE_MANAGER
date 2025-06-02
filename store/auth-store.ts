@@ -1,141 +1,179 @@
-import { create } from 'zustand';
-import { createClient } from '@/lib/supabase/client';
-import type { ExtendedUser, AuthState } from '@/types/auth';
 
-interface AuthStore extends AuthState {
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error?: string }>;
+import { create } from 'zustand';
+import { supabase } from '@/lib/supabase';
+import type { User } from '@/types/auth';
+
+interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signUp: (email: string, password: string, userData: any) => Promise<boolean>;
   signOut: () => Promise<void>;
-  initialize: () => Promise<void>;
-  updateUser: (userData: Partial<ExtendedUser>) => void;
   clearError: () => void;
+  initialize: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: false,
-  initialized: false,
   error: null,
 
   signIn: async (email: string, password: string) => {
-    set({ loading: true });
     try {
-      const supabase = createClient();
+      set({ loading: true, error: null });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (error) {
-        set({ loading: false, error: error.message });
-        return { error: error.message };
+        set({ error: error.message, loading: false });
+        return false;
       }
 
       if (data.user) {
-        const extendedUser: ExtendedUser = {
-          ...data.user,
-          role: data.user.user_metadata?.role,
-          full_name: data.user.user_metadata?.full_name,
-        };
-        set({ user: extendedUser, loading: false });
+        // Récupérer les informations utilisateur complètes
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (userError) {
+          set({ error: userError.message, loading: false });
+          return false;
+        }
+
+        set({ 
+          user: userData,
+          loading: false,
+          error: null
+        });
+        return true;
       }
 
-      return {};
+      set({ loading: false });
+      return false;
     } catch (error) {
-      set({ loading: false, error: 'Une erreur est survenue lors de la connexion' });
-      return { error: 'Une erreur est survenue lors de la connexion' };
+      set({ 
+        error: error instanceof Error ? error.message : 'Erreur de connexion',
+        loading: false 
+      });
+      return false;
     }
   },
 
-  signUp: async (email: string, password: string, userData = {}) => {
-    set({ loading: true });
+  signUp: async (email: string, password: string, userData: any) => {
     try {
-      const supabase = createClient();
+      set({ loading: true, error: null });
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData,
-        },
+          data: userData
+        }
       });
 
       if (error) {
-        set({ loading: false, error: error.message });
-        return { error: error.message };
+        set({ error: error.message, loading: false });
+        return false;
       }
 
       if (data.user) {
-        const extendedUser: ExtendedUser = {
-          ...data.user,
-          role: userData.role,
-          full_name: userData.full_name,
-        };
-        set({ user: extendedUser, loading: false });
+        // Créer l'utilisateur dans la table users
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([{
+            id: data.user.id,
+            email: data.user.email,
+            full_name: userData.full_name,
+            role: userData.role || 'intern',
+            created_at: new Date().toISOString()
+          }]);
+
+        if (insertError) {
+          set({ error: insertError.message, loading: false });
+          return false;
+        }
+
+        set({ loading: false });
+        return true;
       }
 
-      return {};
+      set({ loading: false });
+      return false;
     } catch (error) {
-      set({ loading: false, error: 'Une erreur est survenue lors de l\'inscription' });
-      return { error: 'Une erreur est survenue lors de l\'inscription' };
+      set({ 
+        error: error instanceof Error ? error.message : 'Erreur lors de l\'inscription',
+        loading: false 
+      });
+      return false;
     }
   },
 
   signOut: async () => {
-    set({ loading: true });
     try {
-      const supabase = createClient();
+      set({ loading: true });
       await supabase.auth.signOut();
-      set({ user: null, loading: false });
+      set({ user: null, loading: false, error: null });
     } catch (error) {
-      set({ loading: false, error: 'Erreur lors de la déconnexion' });
-    }
-  },
-
-  initialize: async () => {
-    if (get().initialized) return;
-
-    set({ loading: true });
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const extendedUser: ExtendedUser = {
-          ...user,
-          role: user.user_metadata?.role,
-          full_name: user.user_metadata?.full_name,
-        };
-        set({ user: extendedUser, loading: false, initialized: true });
-      } else {
-        set({ user: null, loading: false, initialized: true });
-      }
-
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (session?.user) {
-          const extendedUser: ExtendedUser = {
-            ...session.user,
-            role: session.user.user_metadata?.role,
-            full_name: session.user.user_metadata?.full_name,
-          };
-          set({ user: extendedUser });
-        } else {
-          set({ user: null });
-        }
+      set({ 
+        error: error instanceof Error ? error.message : 'Erreur lors de la déconnexion',
+        loading: false 
       });
-    } catch (error) {
-      set({ user: null, loading: false, initialized: true, error: 'Erreur lors de l\'initialisation' });
-    }
-  },
-
-  updateUser: (userData: Partial<ExtendedUser>) => {
-    const currentUser = get().user;
-    if (currentUser) {
-      set({ user: { ...currentUser, ...userData } });
     }
   },
 
   clearError: () => {
     set({ error: null });
   },
-});
+
+  initialize: async () => {
+    try {
+      set({ loading: true });
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Erreur lors de la récupération des données utilisateur:', error);
+          set({ user: null, loading: false });
+          return;
+        }
+
+        set({ user: userData, loading: false });
+      } else {
+        set({ user: null, loading: false });
+      }
+
+      // Écouter les changements d'authentification
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!error && userData) {
+            set({ user: userData });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          set({ user: null });
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation:', error);
+      set({ user: null, loading: false });
+    }
+  }
+}));

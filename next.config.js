@@ -3,14 +3,6 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
   images: {
     remotePatterns: [
@@ -41,6 +33,15 @@ const nextConfig = {
     if (isServer) {
       config.externals.push('@node-rs/argon2', '@node-rs/bcrypt');
     }
+    
+    // Fix for potential module resolution issues
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    
     return config;
   },
   
@@ -69,6 +70,7 @@ const nextConfig = {
       },
     ];
   },
+  
   async redirects() {
     return [
       {
@@ -78,6 +80,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

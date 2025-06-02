@@ -1,9 +1,14 @@
 
 {
   "framework": "nextjs",
+  "buildCommand": "npm run build",
   "functions": {
     "app/**/*.{js,ts,tsx}": {
       "maxDuration": 30
     }
+  },
+  "regions": ["iad1"],
+  "github": {
+    "silent": true
   }
 }
