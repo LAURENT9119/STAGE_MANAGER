@@ -1,198 +1,152 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-
-export interface User {
-  id: string;
-  email: string;
-  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
-  firstName: string;
-  lastName: string;
-  full_name?: string;
-  avatar_url?: string;
-  phone?: string;
-  address?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { persist } from 'zustand/middleware';
+import type { User, Session } from '@supabase/supabase-js';
+import { AuthService, type UserProfile } from '@/lib/auth-service';
 
 interface AuthState {
   user: User | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  isLoading: boolean;
   isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
 
   // Actions
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
+  signUp: (email: string, password: string, userData: { full_name: string; role: string }) => Promise<{ success: boolean; error?: any }>;
   signOut: () => Promise<void>;
-  initializeAuth: () => Promise<void>;
-  clearError: () => void;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setProfile: (profile: UserProfile | null) => void;
+  setLoading: (loading: boolean) => void;
+  initialize: () => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: any }>;
 }
 
 export const useAuthStore = create<AuthState>()(
-  devtools(
-    persist(
-      (set, get) => ({
-        user: null,
-        isAuthenticated: false,
-        loading: false,
-        error: null,
+  persist(
+    (set, get) => ({
+      user: null,
+      session: null,
+      profile: null,
+      isLoading: true,
+      isAuthenticated: false,
 
-        signIn: async (email: string, password: string) => {
-          set({ loading: true, error: null });
-          try {
-            const { AuthService } = await import('@/lib/auth-service');
-            const result = await AuthService.signIn(email, password);
+      signIn: async (email: string, password: string) => {
+        set({ isLoading: true });
 
-            if (result?.user) {
-              const userData = await AuthService.getCurrentUser();
-              if (userData?.userData) {
-                const user: User = {
-                  id: userData.userData.id,
-                  email: userData.userData.email,
-                  role: userData.userData.role,
-                  firstName: userData.userData.full_name.split(' ')[0] || userData.userData.full_name,
-                  lastName: userData.userData.full_name.split(' ').slice(1).join(' ') || '',
-                  full_name: userData.userData.full_name,
-                  avatar_url: userData.userData.avatar_url,
-                  phone: userData.userData.phone,
-                  address: userData.userData.address,
-                  created_at: userData.userData.created_at,
-                  updated_at: userData.userData.updated_at
-                };
+        const { data, error } = await AuthService.signIn(email, password);
 
-                set({ 
-                  user, 
-                  isAuthenticated: true, 
-                  loading: false 
-                });
-                return true;
-              }
-            }
-            throw new Error('Identifiants invalides');
-          } catch (error: any) {
-            set({ 
-              loading: false, 
-              error: error.message || 'Erreur de connexion' 
-            });
-            return false;
-          }
-        },
+        if (error) {
+          set({ isLoading: false });
+          return { success: false, error };
+        }
 
-        signUp: async (email: string, password: string, fullName: string, role: string) => {
-          set({ loading: true, error: null });
-          try {
-            const { AuthService } = await import('@/lib/auth-service');
-            const result = await AuthService.signUp(email, password, {
-              full_name: fullName,
-              role: role
-            });
+        if (data.user) {
+          const profile = await AuthService.getUserProfile(data.user.id);
+          set({
+            user: data.user,
+            session: data.session,
+            profile,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        }
 
-            if (result?.user) {
-              // Attendre un peu pour que les triggers de base de données se terminent
-              await new Promise(resolve => setTimeout(resolve, 1000));
+        return { success: true };
+      },
 
-              // Récupérer les données utilisateur mises à jour
-              const currentUser = await AuthService.getCurrentUser();
-              if (currentUser && currentUser.userData) {
-                set({ 
-                  user: currentUser.userData, 
-                  loading: false, 
-                  error: null 
-                });
+      signUp: async (email: string, password: string, userData: { full_name: string; role: string }) => {
+        set({ isLoading: true });
 
-                // Redirection automatique vers le dashboard approprié
-                const userRole = currentUser.userData.role || 'intern';
-                window.location.href = `/dashboard/${userRole}`;
-                return;
-              }
+        const { data, error } = await AuthService.signUp(email, password, userData);
 
-              // Si pas de données utilisateur, essayer de se connecter
-              if (result.user.email_confirmed_at) {
-                await AuthService.signIn(email, password);
-                const retryUser = await AuthService.getCurrentUser();
-                if (retryUser && retryUser.userData) {
-                  set({ 
-                    user: retryUser.userData, 
-                    loading: false, 
-                    error: null 
-                  });
-                  window.location.href = `/dashboard/${retryUser.userData.role || 'intern'}`;
-                  return;
-                }
-              }
-            }
+        if (error) {
+          set({ isLoading: false });
+          return { success: false, error };
+        }
 
-            set({ loading: false });
-          } catch (error: any) {
-            console.error('Erreur d\'inscription:', error);
-            set({ error: error.message, loading: false });
-          }
-        },
+        set({ isLoading: false });
+        return { success: true };
+      },
 
-        signOut: async () => {
-          try {
-            const { AuthService } = await import('@/lib/auth-service');
-            await AuthService.signOut();
-            set({ 
-              user: null, 
-              isAuthenticated: false, 
-              loading: false, 
-              error: null 
-            });
-          } catch (error: any) {
-            console.error('Erreur lors de la déconnexion:', error);
-          }
-        },
+      signOut: async () => {
+        set({ isLoading: true });
+        await AuthService.signOut();
+        set({
+          user: null,
+          session: null,
+          profile: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      },
 
-        initializeAuth: async () => {
-          set({ loading: true });
-          try {
-            const { AuthService } = await import('@/lib/auth-service');
-            const session = await AuthService.getSession();
+      setUser: (user) => {
+        set({ user, isAuthenticated: !!user });
+      },
 
-            if (session?.user) {
-              const userData = await AuthService.getCurrentUser();
-              if (userData?.userData) {
-                const user: User = {
-                  id: userData.userData.id,
-                  email: userData.userData.email,
-                  role: userData.userData.role,
-                  firstName: userData.userData.full_name.split(' ')[0] || userData.userData.full_name,
-                  lastName: userData.userData.full_name.split(' ').slice(1).join(' ') || '',
-                  full_name: userData.userData.full_name,
-                  avatar_url: userData.userData.avatar_url,
-                  phone: userData.userData.phone,
-                  address: userData.userData.address,
-                  created_at: userData.userData.created_at,
-                  updated_at: userData.userData.updated_at
-                };
+      setSession: (session) => {
+        set({ session });
+      },
 
-                set({ 
-                  user, 
-                  isAuthenticated: true, 
-                  loading: false 
-                });
-                return;
-              }
-            }
-            set({ user: null, isAuthenticated: false, loading: false });
-          } catch (error) {
-            console.error('Erreur d\'initialisation:', error);
-            set({ user: null, isAuthenticated: false, loading: false });
-          }
-        },
+      setProfile: (profile) => {
+        set({ profile });
+      },
 
-        clearError: () => set({ error: null })
+      setLoading: (loading) => {
+        set({ isLoading: loading });
+      },
+
+      initialize: async () => {
+        set({ isLoading: true });
+
+        const { user, session } = await AuthService.getCurrentUser();
+
+        if (user) {
+          const profile = await AuthService.getUserProfile(user.id);
+          set({
+            user,
+            session,
+            profile,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } else {
+          set({
+            user: null,
+            session: null,
+            profile: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      },
+
+      updateProfile: async (updates) => {
+        const { user } = get();
+        if (!user) return { success: false, error: 'No user logged in' };
+
+        const { data, error } = await AuthService.updateProfile(user.id, updates);
+
+        if (error) {
+          return { success: false, error };
+        }
+
+        if (data) {
+          set({ profile: data });
+        }
+
+        return { success: true };
+      },
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        session: state.session,
+        profile: state.profile,
+        isAuthenticated: state.isAuthenticated,
       }),
-      {
-        name: 'auth-storage',
-        partialize: (state) => ({ 
-          user: state.user, 
-          isAuthenticated: state.isAuthenticated 
-        })
-      }
-    ),
-    { name: 'auth-store' }
+    }
   )
 );
