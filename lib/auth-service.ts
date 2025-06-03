@@ -30,26 +30,25 @@ class AuthService {
     try {
       const supabase = getSupabaseClient();
       
-      // Inscription de l'utilisateur
+      // Inscription de l'utilisateur avec métadonnées
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: userData.full_name,
-            role: userData.role
+            role: userData.role,
+            phone: userData.phone || '',
+            department: userData.department || ''
           }
         }
       });
       
       if (error) throw error;
       
-      // Si l'utilisateur est créé, créer son profil
-      if (data.user) {
-        // Attendre un peu pour que Supabase traite l'inscription
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Créer le profil utilisateur manuellement si le trigger n'a pas fonctionné
+      // Si l'utilisateur est créé, s'assurer que le profil existe
+      if (data.user && !data.user.email_confirmed_at) {
+        // Pour les nouveaux utilisateurs, créer le profil immédiatement
         const { error: profileError } = await supabase
           .from('users')
           .upsert({
@@ -57,6 +56,7 @@ class AuthService {
             email: data.user.email,
             full_name: userData.full_name,
             role: userData.role,
+            phone: userData.phone || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }, {
@@ -65,7 +65,27 @@ class AuthService {
           
         if (profileError) {
           console.warn('Profile creation warning:', profileError);
-          // Ne pas lever d'erreur car l'authentification a réussi
+        }
+
+        // Si c'est un stagiaire, créer aussi son profil stagiaire
+        if (userData.role === 'intern' && userData.internData) {
+          const { error: internError } = await supabase
+            .from('interns')
+            .insert({
+              user_id: data.user.id,
+              department: userData.internData.department,
+              university: userData.internData.university,
+              level: userData.internData.level,
+              contract_type: userData.internData.contract_type,
+              start_date: userData.internData.start_date,
+              end_date: userData.internData.end_date,
+              project: userData.internData.project || null,
+              status: 'upcoming'
+            });
+            
+          if (internError) {
+            console.warn('Intern profile creation warning:', internError);
+          }
         }
       }
       

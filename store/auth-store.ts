@@ -89,64 +89,44 @@ export const useAuthStore = create<AuthState>()(
             });
 
             if (result?.user) {
-              // Attendre que le profil soit créé
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              // Attendre un peu pour que les triggers de base de données se terminent
+              await new Promise(resolve => setTimeout(resolve, 1000));
 
-              // Réessayer plusieurs fois si nécessaire
-              let userData = null;
-              for (let i = 0; i < 3; i++) {
-                userData = await AuthService.getCurrentUser();
-                if (userData?.userData) break;
-                await new Promise(resolve => setTimeout(resolve, 1000));
+              // Récupérer les données utilisateur mises à jour
+              const currentUser = await AuthService.getCurrentUser();
+              if (currentUser && currentUser.userData) {
+                set({ 
+                  user: currentUser.userData, 
+                  loading: false, 
+                  error: null 
+                });
+
+                // Redirection automatique vers le dashboard approprié
+                const userRole = currentUser.userData.role || 'intern';
+                window.location.href = `/dashboard/${userRole}`;
+                return;
               }
 
-              if (userData?.userData) {
-                const user: User = {
-                  id: userData.userData.id,
-                  email: userData.userData.email,
-                  role: userData.userData.role,
-                  firstName: userData.userData.full_name.split(' ')[0] || userData.userData.full_name,
-                  lastName: userData.userData.full_name.split(' ').slice(1).join(' ') || '',
-                  full_name: userData.userData.full_name,
-                  avatar_url: userData.userData.avatar_url,
-                  phone: userData.userData.phone,
-                  address: userData.userData.address,
-                  created_at: userData.userData.created_at,
-                  updated_at: userData.userData.updated_at
-                };
-
-                set({ 
-                  user, 
-                  isAuthenticated: true, 
-                  loading: false 
-                });
-                return true;
-              } else {
-                // Créer un utilisateur de base si le profil n'a pas pu être récupéré
-                const basicUser: User = {
-                  id: result.user.id,
-                  email: result.user.email || email,
-                  role: role as any,
-                  firstName: fullName.split(' ')[0] || fullName,
-                  lastName: fullName.split(' ').slice(1).join(' ') || '',
-                  full_name: fullName
-                };
-
-                set({ 
-                  user: basicUser, 
-                  isAuthenticated: true, 
-                  loading: false 
-                });
-                return true;
+              // Si pas de données utilisateur, essayer de se connecter
+              if (result.user.email_confirmed_at) {
+                await AuthService.signIn(email, password);
+                const retryUser = await AuthService.getCurrentUser();
+                if (retryUser && retryUser.userData) {
+                  set({ 
+                    user: retryUser.userData, 
+                    loading: false, 
+                    error: null 
+                  });
+                  window.location.href = `/dashboard/${retryUser.userData.role || 'intern'}`;
+                  return;
+                }
               }
             }
-            throw new Error('Erreur lors de l\'inscription');
+
+            set({ loading: false });
           } catch (error: any) {
-            set({ 
-              loading: false, 
-              error: error.message || 'Erreur d\'inscription' 
-            });
-            return false;
+            console.error('Erreur d\'inscription:', error);
+            set({ error: error.message, loading: false });
           }
         },
 

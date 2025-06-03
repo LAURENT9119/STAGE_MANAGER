@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -348,12 +347,12 @@ export default function RoleDashboard() {
           <MainNav role={role} />
         </div>
       </header>
-      
+
       <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
         <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block border-r">
           <DashboardNav role={role} />
         </aside>
-        
+
         <main className="flex w-full flex-col overflow-hidden py-6">
           <div className="space-y-8">
             {/* Header */}
@@ -378,7 +377,7 @@ export default function RoleDashboard() {
                 <TabsTrigger value="analytics">Analyses</TabsTrigger>
                 <TabsTrigger value="activity">Activité récente</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview" className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                   <Card className="col-span-4">
@@ -397,7 +396,7 @@ export default function RoleDashboard() {
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="col-span-3">
                     <CardHeader>
                       <CardTitle>Répartition par département</CardTitle>
@@ -421,7 +420,7 @@ export default function RoleDashboard() {
                   </Card>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="analytics" className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card>
@@ -439,7 +438,7 @@ export default function RoleDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader>
                       <CardTitle>Statistiques clés</CardTitle>
@@ -465,7 +464,7 @@ export default function RoleDashboard() {
                   </Card>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="activity" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -501,7 +500,7 @@ export default function RoleDashboard() {
           </div>
         </main>
       </div>
-      
+
       <SiteFooter />
     </div>
   );
