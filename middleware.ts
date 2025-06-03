@@ -43,8 +43,13 @@ export async function middleware(req: NextRequest) {
 
     const roleFromPath = req.nextUrl.pathname.split('/')[2];
     
-    if (profile?.role && roleFromPath !== profile.role && roleFromPath !== 'intern') {
-      return NextResponse.redirect(new URL(`/dashboard/${profile.role}`, req.url));
+    // Redirection selon le rôle utilisateur
+    if (profile?.role && roleFromPath && roleFromPath !== profile.role) {
+      // Permettre l'accès aux routes génériques pour tous les rôles
+      const allowedGenericRoutes = ['settings', 'notifications', 'profile'];
+      if (!allowedGenericRoutes.includes(roleFromPath)) {
+        return NextResponse.redirect(new URL(`/dashboard/${profile.role}`, req.url));
+      }
     }
   }
 

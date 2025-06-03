@@ -92,3 +92,40 @@ ORDER BY role;
 -- hr@company.com / password123 (RH)
 -- finance@company.com / password123 (Finance)  
 -- marie.laurent@company.com / password123 (Tuteur)
+-- Script pour créer des comptes de test
+
+-- Insérer des profils de test (les utilisateurs Auth doivent être créés manuellement)
+INSERT INTO profiles (id, email, full_name, role, phone, address) VALUES 
+-- Admin
+('11111111-1111-1111-1111-111111111111', 'admin@test.com', 'Admin Système', 'admin', '+33123456789', '123 Rue Admin, Paris'),
+-- RH
+('22222222-2222-2222-2222-222222222222', 'rh@test.com', 'Marie RH', 'hr', '+33123456790', '456 Avenue RH, Lyon'),
+-- Finance  
+('33333333-3333-3333-3333-333333333333', 'finance@test.com', 'Pierre Finance', 'finance', '+33123456791', '789 Boulevard Finance, Marseille'),
+-- Tuteur
+('44444444-4444-4444-4444-444444444444', 'tuteur@test.com', 'Sophie Tuteur', 'tutor', '+33123456792', '321 Rue Tuteur, Toulouse'),
+-- Stagiaire
+('55555555-5555-5555-5555-555555555555', 'stagiaire@test.com', 'Jean Stagiaire', 'intern', '+33123456793', '654 Avenue Stagiaire, Nice');
+
+-- Insérer des stagiaires de test
+INSERT INTO interns (id, user_id, tutor_id, department, start_date, end_date, status, university, level, contract_type, project, progress) VALUES 
+('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '55555555-5555-5555-5555-555555555555', '44444444-4444-4444-4444-444444444444', 'Informatique', '2024-02-01', '2024-07-31', 'active', 'Université Paris-Saclay', 'Master 2', 'Stage obligatoire', 'Développement application web de gestion des stagiaires', 65);
+
+-- Insérer des demandes de test
+INSERT INTO requests (id, intern_id, type, title, description, status, priority, submission_date, metadata) VALUES 
+('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'convention', 'Demande de convention de stage', 'Je souhaite obtenir ma convention de stage pour la période février-juillet 2024', 'submitted', 'high', NOW(), '{}'),
+('cccccccc-cccc-cccc-cccc-cccccccccccc', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'attestation', 'Demande d\'attestation de présence', 'Demande d\'attestation pour justificatif auprès de l\'université', 'tutor_review', 'medium', NOW(), '{}');
+
+-- Insérer des notifications de test
+INSERT INTO notifications (user_id, title, message, type, related_request_id) VALUES 
+('55555555-5555-5555-5555-555555555555', 'Demande soumise', 'Votre demande de convention a été soumise avec succès', 'success', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+('44444444-4444-4444-4444-444444444444', 'Nouvelle demande à examiner', 'Jean Stagiaire a soumis une nouvelle demande', 'info', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+('22222222-2222-2222-2222-222222222222', 'Demande en attente', 'Une demande d\'attestation nécessite votre attention', 'warning', 'cccccccc-cccc-cccc-cccc-cccccccccccc');
+
+-- Insérer des paramètres de l'application
+INSERT INTO settings (key, value, description) VALUES 
+('app_name', '"Plateforme de Gestion des Stagiaires"', 'Nom de l\'application'),
+('max_file_size', '10485760', 'Taille maximale des fichiers en bytes (10MB)'),
+('allowed_file_types', '["pdf", "doc", "docx", "jpg", "png"]', 'Types de fichiers autorisés'),
+('email_notifications', 'true', 'Activer les notifications par email'),
+('auto_approval_threshold', '3', 'Nombre d\'approbations requises pour validation automatique');
