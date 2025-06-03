@@ -16,8 +16,7 @@ import {
   Menu, 
   Users
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
 interface MainNavProps {
@@ -58,7 +57,7 @@ export function MainNav({ role }: MainNavProps) {
     ],
   };
 
-  const links = role ? (roleLinks[role] || []) : [];
+  const links = role ? roleLinks[role] : [];
 
   return (
     <div className="flex items-center justify-between">
@@ -147,11 +146,6 @@ export function MainNav({ role }: MainNavProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
-            <SheetHeader>
-              <VisuallyHidden>
-                <SheetTitle>Navigation Menu</SheetTitle>
-              </VisuallyHidden>
-            </SheetHeader>
             <Link href="/" className="flex items-center space-x-2 mb-8">
               <GraduationCap className="h-6 w-6" />
               <span className="font-bold text-xl">Stage+</span>

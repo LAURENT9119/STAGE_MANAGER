@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -9,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface EvaluationFormProps {
   internId: string
@@ -34,7 +34,7 @@ export function EvaluationForm({ internId, onSubmit }: EvaluationFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     const evaluationData = {
       intern_id: internId,
       ...evaluation,
@@ -48,7 +48,7 @@ export function EvaluationForm({ internId, onSubmit }: EvaluationFormProps) {
     }
 
     onSubmit?.(evaluationData)
-
+    
     toast({
       title: "Évaluation soumise",
       description: "L'évaluation a été enregistrée avec succès",

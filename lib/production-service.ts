@@ -1,247 +1,281 @@
-import { createClient } from '@/lib/supabase/client';
+
+import { supabase } from './supabase';
+
+export interface ProductionUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'hr' | 'tutor' | 'intern' | 'finance';
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductionIntern {
+  id: string;
+  user_id: string;
+  tutor_id: string;
+  department: string;
+  university: string;
+  level: string;
+  start_date: string;
+  end_date: string;
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  progress: number;
+  evaluation_score?: number;
+  user?: ProductionUser;
+  tutor?: ProductionUser;
+}
+
+export interface ProductionRequest {
+  id: string;
+  intern_id: string;
+  type: 'convention' | 'prolongation' | 'conge' | 'attestation' | 'evaluation';
+  title: string;
+  description: string;
+  status: 'pending' | 'approved' | 'rejected' | 'in_review';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  created_at: string;
+  intern?: ProductionIntern;
+}
 
 export class ProductionService {
-  private static supabase = createClient();
+  // Users
+  static async getAllUsers(): Promise<ProductionUser[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
 
-  // Statistiques du dashboard basées sur le rôle
-  static async getDashboardStats(userId: string, userRole: string) {
+  static async getUserById(id: string): Promise<ProductionUser | null> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) return null;
+    return data;
+  }
+
+  static async getUsersByRole(role: string): Promise<ProductionUser[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', role)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  // Interns
+  static async getAllInterns(): Promise<ProductionIntern[]> {
+    const { data, error } = await supabase
+      .from('interns')
+      .select(`
+        *,
+        user:users!interns_user_id_fkey(*),
+        tutor:users!interns_tutor_id_fkey(*)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async getInternsByTutor(tutorId: string): Promise<ProductionIntern[]> {
+    const { data, error } = await supabase
+      .from('interns')
+      .select(`
+        *,
+        user:users!interns_user_id_fkey(*),
+        tutor:users!interns_tutor_id_fkey(*)
+      `)
+      .eq('tutor_id', tutorId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async getInternByUserId(userId: string): Promise<ProductionIntern | null> {
+    const { data, error } = await supabase
+      .from('interns')
+      .select(`
+        *,
+        user:users!interns_user_id_fkey(*),
+        tutor:users!interns_tutor_id_fkey(*)
+      `)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) return null;
+    return data;
+  }
+
+  static async createIntern(internData: Omit<ProductionIntern, 'id' | 'user' | 'tutor'>): Promise<ProductionIntern> {
+    const { data, error } = await supabase
+      .from('interns')
+      .insert(internData)
+      .select(`
+        *,
+        user:users!interns_user_id_fkey(*),
+        tutor:users!interns_tutor_id_fkey(*)
+      `)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateIntern(id: string, updates: Partial<ProductionIntern>): Promise<ProductionIntern> {
+    const { data, error } = await supabase
+      .from('interns')
+      .update(updates)
+      .eq('id', id)
+      .select(`
+        *,
+        user:users!interns_user_id_fkey(*),
+        tutor:users!interns_tutor_id_fkey(*)
+      `)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // Requests
+  static async getAllRequests(): Promise<ProductionRequest[]> {
+    const { data, error } = await supabase
+      .from('requests')
+      .select(`
+        *,
+        intern:interns(
+          *,
+          user:users(*)
+        )
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async getRequestsByIntern(internId: string): Promise<ProductionRequest[]> {
+    const { data, error } = await supabase
+      .from('requests')
+      .select(`
+        *,
+        intern:interns(
+          *,
+          user:users(*)
+        )
+      `)
+      .eq('intern_id', internId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async createRequest(requestData: Omit<ProductionRequest, 'id' | 'intern'>): Promise<ProductionRequest> {
+    const { data, error } = await supabase
+      .from('requests')
+      .insert(requestData)
+      .select(`
+        *,
+        intern:interns(
+          *,
+          user:users(*)
+        )
+      `)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateRequestStatus(
+    id: string, 
+    status: string, 
+    reviewerId?: string, 
+    comments?: string
+  ): Promise<ProductionRequest> {
+    const updateData: any = { 
+      status,
+      reviewed_at: new Date().toISOString()
+    };
+    
+    if (reviewerId) updateData.reviewer_id = reviewerId;
+    if (comments) updateData.reviewer_comments = comments;
+
+    const { data, error } = await supabase
+      .from('requests')
+      .update(updateData)
+      .eq('id', id)
+      .select(`
+        *,
+        intern:interns(
+          *,
+          user:users(*)
+        )
+      `)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // Statistics
+  static async getDashboardStats(userId: string, role: string) {
     try {
       const stats: any = {};
 
-      switch (userRole) {
-        case 'admin':
-          // Admin voit toutes les statistiques
-          const [internsResult, requestsResult, usersResult] = await Promise.all([
-            this.supabase.from('interns').select('id, status, start_date, end_date'),
-            this.supabase.from('requests').select('id, status, type, submitted_at'),
-            this.supabase.from('users').select('id, role, created_at')
-          ]);
+      if (role === 'admin' || role === 'hr') {
+        // Total stats for admin/hr
+        const [internsResult, requestsResult, usersResult] = await Promise.all([
+          supabase.from('interns').select('status'),
+          supabase.from('requests').select('status'),
+          supabase.from('users').select('role')
+        ]);
 
-          const interns = internsResult.data || [];
-          const requests = requestsResult.data || [];
-          const users = usersResult.data || [];
+        stats.totalInterns = internsResult.data?.length || 0;
+        stats.activeInterns = internsResult.data?.filter(i => i.status === 'active').length || 0;
+        stats.pendingRequests = requestsResult.data?.filter(r => r.status === 'pending').length || 0;
+        stats.totalUsers = usersResult.data?.length || 0;
+        
+      } else if (role === 'tutor') {
+        // Tutor-specific stats
+        const internsResult = await supabase
+          .from('interns')
+          .select('status')
+          .eq('tutor_id', userId);
+        
+        stats.myInterns = internsResult.data?.length || 0;
+        stats.activeInterns = internsResult.data?.filter(i => i.status === 'active').length || 0;
+        
+      } else if (role === 'intern') {
+        // Intern-specific stats
+        const [internResult, requestsResult] = await Promise.all([
+          supabase.from('interns').select('*').eq('user_id', userId).single(),
+          supabase.from('requests').select('status').eq('intern_id', userId)
+        ]);
 
-          stats.totalInterns = interns.length;
-          stats.activeInterns = interns.filter(i => i.status === 'active').length;
-          stats.pendingRequests = requests.filter(r => r.status === 'pending').length;
-          stats.totalUsers = users.length;
-          stats.usersByRole = this.groupByRole(users);
-          stats.internsByStatus = this.groupByStatus(interns);
-          stats.requestsByType = this.groupByType(requests);
-          stats.monthlyInterns = this.groupByMonth(interns);
-          break;
-
-        case 'hr':
-          // RH voit les stagiaires et demandes
-          const [hrInternsResult, hrRequestsResult] = await Promise.all([
-            this.supabase.from('interns').select('id, status, start_date, end_date'),
-            this.supabase.from('requests').select('id, status, type, submitted_at')
-          ]);
-
-          const hrInterns = hrInternsResult.data || [];
-          const hrRequests = hrRequestsResult.data || [];
-
-          stats.totalInterns = hrInterns.length;
-          stats.activeInterns = hrInterns.filter(i => i.status === 'active').length;
-          stats.pendingRequests = hrRequests.filter(r => r.status === 'pending').length;
-          stats.internsByStatus = this.groupByStatus(hrInterns);
-          stats.requestsByType = this.groupByType(hrRequests);
-          break;
-
-        case 'tutor':
-          // Tuteur voit ses stagiaires
-          const tutorInternsResult = await this.supabase
-            .from('interns')
-            .select('id, status, start_date, end_date, user:users(*)')
-            .eq('tutor_id', userId);
-
-          const tutorInterns = tutorInternsResult.data || [];
-          const tutorRequestsResult = await this.supabase
-            .from('requests')
-            .select('id, status, type, submitted_at')
-            .in('intern_id', tutorInterns.map(i => i.id));
-
-          const tutorRequests = tutorRequestsResult.data || [];
-
-          stats.myInterns = tutorInterns.length;
-          stats.activeInterns = tutorInterns.filter(i => i.status === 'active').length;
-          stats.pendingRequests = tutorRequests.filter(r => r.status === 'pending').length;
-          stats.internsByStatus = this.groupByStatus(tutorInterns);
-          stats.requestsByType = this.groupByType(tutorRequests);
-          break;
-
-        case 'intern':
-          // Stagiaire voit ses propres données
-          const internProfileResult = await this.supabase
-            .from('interns')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
-
-          if (internProfileResult.data) {
-            const internId = internProfileResult.data.id;
-            const myRequestsResult = await this.supabase
-              .from('requests')
-              .select('id, status, type, submitted_at')
-              .eq('intern_id', internId);
-
-            const myRequests = myRequestsResult.data || [];
-
-            stats.myProgress = internProfileResult.data.progress || 0;
-            stats.myRequests = myRequests.length;
-            stats.pendingRequests = myRequests.filter(r => r.status === 'pending').length;
-            stats.approvedRequests = myRequests.filter(r => r.status === 'approved').length;
-            stats.requestsByType = this.groupByType(myRequests);
-            stats.contractInfo = {
-              startDate: internProfileResult.data.start_date,
-              endDate: internProfileResult.data.end_date,
-              status: internProfileResult.data.status,
-              department: internProfileResult.data.department
-            };
-          }
-          break;
-
-        case 'finance':
-          // Finance voit les données financières
-          const financeRequestsResult = await this.supabase
-            .from('requests')
-            .select('id, status, type, submitted_at')
-            .in('type', ['convention', 'attestation']);
-
-          const financeRequests = financeRequestsResult.data || [];
-
-          stats.conventionRequests = financeRequests.filter(r => r.type === 'convention').length;
-          stats.attestationRequests = financeRequests.filter(r => r.type === 'attestation').length;
-          stats.pendingFinanceRequests = financeRequests.filter(r => r.status === 'pending').length;
-          break;
+        stats.progress = internResult.data?.progress || 0;
+        stats.myRequests = requestsResult.data?.length || 0;
+        stats.pendingRequests = requestsResult.data?.filter(r => r.status === 'pending').length || 0;
       }
 
-      return { data: stats, error: null };
+      return stats;
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error);
-      return { data: null, error };
-    }
-  }
-
-  // Méthodes utilitaires pour regrouper les données
-  private static groupByRole(users: any[]) {
-    return users.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  private static groupByStatus(interns: any[]) {
-    return interns.reduce((acc, intern) => {
-      acc[intern.status] = (acc[intern.status] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  private static groupByType(requests: any[]) {
-    return requests.reduce((acc, request) => {
-      acc[request.type] = (acc[request.type] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  private static groupByMonth(interns: any[]) {
-    const monthCounts: { [key: string]: number } = {};
-    const now = new Date();
-
-    // Derniers 6 mois
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toISOString().substring(0, 7); // YYYY-MM
-      monthCounts[monthKey] = 0;
-    }
-
-    interns.forEach(intern => {
-      const startDate = new Date(intern.start_date);
-      const monthKey = startDate.toISOString().substring(0, 7);
-      if (monthCounts.hasOwnProperty(monthKey)) {
-        monthCounts[monthKey]++;
-      }
-    });
-
-    return monthCounts;
-  }
-
-  // Récupérer les données spécifiques à l'utilisateur
-  static async getUserSpecificData(userId: string, userRole: string) {
-    try {
-      const data: any = {};
-
-      switch (userRole) {
-        case 'intern':
-          // Profil du stagiaire
-          const internResult = await this.supabase
-            .from('interns')
-            .select(`
-              *,
-              tutor:users!interns_tutor_id_fkey(full_name, email)
-            `)
-            .eq('user_id', userId)
-            .single();
-
-          if (internResult.data) {
-            data.internProfile = internResult.data;
-
-            // Ses demandes
-            const requestsResult = await this.supabase
-              .from('requests')
-              .select('*')
-              .eq('intern_id', internResult.data.id)
-              .order('created_at', { ascending: false });
-
-            data.requests = requestsResult.data || [];
-          }
-          break;
-
-        case 'tutor':
-          // Stagiaires du tuteur
-          const tutorInternsResult = await this.supabase
-            .from('interns')
-            .select(`
-              *,
-              user:users(full_name, email)
-            `)
-            .eq('tutor_id', userId);
-
-          data.myInterns = tutorInternsResult.data || [];
-          break;
-
-        case 'hr':
-        case 'admin':
-          // Tous les stagiaires et demandes
-          const allInternsResult = await this.supabase
-            .from('interns')
-            .select(`
-              *,
-              user:users(full_name, email),
-              tutor:users!interns_tutor_id_fkey(full_name, email)
-            `);
-
-          const allRequestsResult = await this.supabase
-            .from('requests')
-            .select(`
-              *,
-              intern:interns(
-                *,
-                user:users(full_name, email)
-              )
-            `)
-            .order('created_at', { ascending: false });
-
-          data.allInterns = allInternsResult.data || [];
-          data.allRequests = allRequestsResult.data || [];
-          break;
-      }
-
-      return { data, error: null };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des données utilisateur:', error);
-      return { data: null, error };
+      console.error('Error fetching dashboard stats:', error);
+      return {};
     }
   }
 }
