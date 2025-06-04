@@ -53,6 +53,7 @@ export default function RegisterPage() {
       );
 
       if (error) {
+        console.error('Erreur d\'inscription:', error);
         setError(error.message || 'Erreur lors de l\'inscription');
         return;
       }

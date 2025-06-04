@@ -25,10 +25,10 @@ export default function DashboardPage() {
     }
   }, [initialized, initialize]);
 
-  if (!initialized || (!user && !requestsLoading)) {
+  if (!initialized) {
     return (
       <div className="p-6">
-        <div className="text-center">Chargement...</div>
+        <div className="text-center">Chargement de l'authentification...</div>
       </div>
     );
   }

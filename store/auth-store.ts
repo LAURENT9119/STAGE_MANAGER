@@ -57,8 +57,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (data?.user && data?.session) {
         const profile = await AuthService.getUserProfile(data.user.id);
-        set({ user: profile, session: data.session, loading: false });
-        return { success: true };
+        if (profile) {
+          set({ user: profile, session: data.session, loading: false });
+          return { success: true };
+        } else {
+          set({ loading: false });
+          return { success: false, error: 'Profil utilisateur introuvable' };
+        }
       }
 
       set({ loading: false });

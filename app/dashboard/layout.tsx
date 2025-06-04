@@ -56,7 +56,7 @@ export default function DashboardLayout({
       </header>
       <div className="flex flex-1">
         <aside className="w-64 border-r bg-muted/10">
-          <DashboardNav userRole={profile?.role || 'intern'} />
+          <DashboardNav role={profile?.role || 'intern'} />
         </aside>
         <main className="flex-1">
           {children}

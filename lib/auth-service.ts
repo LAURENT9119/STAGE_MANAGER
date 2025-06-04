@@ -97,9 +97,14 @@ export class AuthService {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur lors de la récupération du profil:', error);
+        return null;
+      }
+      
       return data;
     } catch (error) {
+      console.error('Erreur getUserProfile:', error);
       return null;
     }
   }
