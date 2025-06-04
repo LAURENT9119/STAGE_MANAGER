@@ -1,134 +1,193 @@
 
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MainNav } from '@/components/layout/main-nav';
-import { SiteFooter } from '@/components/layout/site-footer';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+
+interface TestResult {
+  name: string;
+  status: 'loading' | 'success' | 'error';
+  message: string;
+}
 
 export default function TestConnectionPage() {
-  const [connectionStatus, setConnectionStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [dbData, setDbData] = useState<any>(null);
+  const [tests, setTests] = useState<TestResult[]>([
+    { name: 'Configuration Supabase', status: 'loading', message: 'Vérification...' },
+    { name: 'Connexion à la base de données', status: 'loading', message: 'Test en cours...' },
+    { name: 'Table profiles', status: 'loading', message: 'Vérification...' },
+    { name: 'Table requests', status: 'loading', message: 'Vérification...' },
+    { name: 'Authentication', status: 'loading', message: 'Test en cours...' },
+  ]);
 
-  const testConnection = async () => {
-    setConnectionStatus('loading');
-    setErrorMessage('');
-    
-    try {
-      const supabase = createClient();
-      
-      // Test simple connexion
-      const { data, error } = await supabase
-        .from('users')
-        .select('count(*)')
-        .limit(1);
-
-      if (error) {
-        throw error;
-      }
-
-      setDbData(data);
-      setConnectionStatus('success');
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Erreur de connexion inconnue');
-      setConnectionStatus('error');
-    }
+  const updateTest = (index: number, status: TestResult['status'], message: string) => {
+    setTests(prev => prev.map((test, i) => 
+      i === index ? { ...test, status, message } : test
+    ));
   };
 
   useEffect(() => {
-    testConnection();
+    const runTests = async () => {
+      const supabase = createClient();
+
+      // Test 1: Configuration Supabase
+      try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (!url || !key) {
+          updateTest(0, 'error', 'Variables d\'environnement manquantes');
+        } else {
+          updateTest(0, 'success', 'Configuration trouvée');
+        }
+      } catch (error) {
+        updateTest(0, 'error', 'Erreur de configuration');
+      }
+
+      // Test 2: Connexion à la base de données
+      try {
+        const { data, error } = await supabase.from('profiles').select('count').limit(1);
+        if (error) {
+          updateTest(1, 'error', `Erreur de connexion: ${error.message}`);
+        } else {
+          updateTest(1, 'success', 'Connexion réussie');
+        }
+      } catch (error) {
+        updateTest(1, 'error', 'Impossible de se connecter');
+      }
+
+      // Test 3: Table profiles
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').limit(1);
+        if (error) {
+          updateTest(2, 'error', `Table profiles: ${error.message}`);
+        } else {
+          updateTest(2, 'success', `Table profiles accessible (${data?.length || 0} enregistrements trouvés)`);
+        }
+      } catch (error) {
+        updateTest(2, 'error', 'Table profiles inaccessible');
+      }
+
+      // Test 4: Table requests
+      try {
+        const { data, error } = await supabase.from('requests').select('*').limit(1);
+        if (error) {
+          updateTest(3, 'error', `Table requests: ${error.message}`);
+        } else {
+          updateTest(3, 'success', `Table requests accessible (${data?.length || 0} enregistrements trouvés)`);
+        }
+      } catch (error) {
+        updateTest(3, 'error', 'Table requests inaccessible');
+      }
+
+      // Test 5: Authentication
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          updateTest(4, 'error', `Auth error: ${error.message}`);
+        } else {
+          updateTest(4, 'success', session ? 'Utilisateur connecté' : 'Auth configuré (pas connecté)');
+        }
+      } catch (error) {
+        updateTest(4, 'error', 'Auth system inaccessible');
+      }
+    };
+
+    runTests();
   }, []);
 
+  const getIcon = (status: TestResult['status']) => {
+    switch (status) {
+      case 'loading':
+        return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'error':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+    }
+  };
+
+  const allTestsComplete = tests.every(test => test.status !== 'loading');
+  const hasErrors = tests.some(test => test.status === 'error');
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          <MainNav />
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-center mb-2">Test de Connexion</h1>
+          <p className="text-muted-foreground text-center">
+            Vérification de la configuration et des connexions de l'application
+          </p>
         </div>
-      </header>
-      <main className="flex-1 container py-12">
-        <Card className="max-w-2xl mx-auto">
+
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Test de Connectivité Database</CardTitle>
+            <CardTitle>Résultats des Tests</CardTitle>
             <CardDescription>
-              Vérification de la connexion entre le frontend et Supabase
+              Statut de la configuration et des connexions système
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Variables d'environnement</h3>
-              <div className="grid grid-cols-1 gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span>NEXT_PUBLIC_SUPABASE_URL:</span>
-                  <span className={process.env.NEXT_PUBLIC_SUPABASE_URL ? 'text-green-600' : 'text-red-600'}>
-                    {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✓ Configurée' : '✗ Manquante'}
-                  </span>
+          <CardContent className="space-y-4">
+            {tests.map((test, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  {getIcon(test.status)}
+                  <span className="font-medium">{test.name}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>NEXT_PUBLIC_SUPABASE_ANON_KEY:</span>
-                  <span className={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'text-green-600' : 'text-red-600'}>
-                    {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✓ Configurée' : '✗ Manquante'}
-                  </span>
-                </div>
+                <span className={`text-sm ${
+                  test.status === 'success' ? 'text-green-600' :
+                  test.status === 'error' ? 'text-red-600' : 'text-blue-600'
+                }`}>
+                  {test.message}
+                </span>
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Test de Connexion Database</h3>
-              
-              {connectionStatus === 'loading' && (
-                <Alert>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <AlertDescription>Test de connexion en cours...</AlertDescription>
-                </Alert>
-              )}
-
-              {connectionStatus === 'success' && (
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    ✅ Connexion réussie à Supabase !
-                    {dbData && <div className="mt-2">Données récupérées: {JSON.stringify(dbData)}</div>}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {connectionStatus === 'error' && (
-                <Alert variant="destructive">
-                  <XCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    ❌ Erreur de connexion: {errorMessage}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Pages disponibles</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <a href="/" className="text-blue-600 hover:underline">🏠 Accueil</a>
-                <a href="/auth/login" className="text-blue-600 hover:underline">🔐 Connexion</a>
-                <a href="/auth/register" className="text-blue-600 hover:underline">📝 Inscription</a>
-                <a href="/dashboard/intern" className="text-blue-600 hover:underline">📊 Dashboard Stagiaire</a>
-                <a href="/dashboard/hr" className="text-blue-600 hover:underline">👥 Dashboard RH</a>
-                <a href="/terms" className="text-blue-600 hover:underline">📋 Conditions</a>
-                <a href="/privacy" className="text-blue-600 hover:underline">🔒 Confidentialité</a>
-                <a href="/contact" className="text-blue-600 hover:underline">📞 Contact</a>
-              </div>
-            </div>
-
-            <Button onClick={testConnection} className="w-full">
-              Retester la connexion
-            </Button>
+            ))}
           </CardContent>
         </Card>
-      </main>
-      <SiteFooter />
+
+        {allTestsComplete && (
+          <Card className={`border-l-4 ${hasErrors ? 'border-l-red-500 bg-red-50' : 'border-l-green-500 bg-green-50'}`}>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className={`font-bold ${hasErrors ? 'text-red-800' : 'text-green-800'}`}>
+                    {hasErrors ? '⚠️ Problèmes Détectés' : '✅ Tous les Tests Réussis'}
+                  </h3>
+                  <p className={`text-sm mt-1 ${hasErrors ? 'text-red-600' : 'text-green-600'}`}>
+                    {hasErrors 
+                      ? 'Des erreurs ont été détectées. Vérifiez la configuration.'
+                      : 'Votre application est correctement configurée et connectée.'
+                    }
+                  </p>
+                </div>
+                <div className="space-x-2">
+                  <Button 
+                    onClick={() => window.location.reload()} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Relancer les Tests
+                  </Button>
+                  {!hasErrors && (
+                    <Button asChild size="sm">
+                      <Link href="/auth/login">Continuer</Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="mt-8 text-center">
+          <Button variant="outline" asChild>
+            <Link href="/">Retour à l'accueil</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
