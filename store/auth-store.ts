@@ -19,6 +19,7 @@ interface AuthState {
   setProfile: (profile: UserProfile | null) => void;
   setLoading: (loading: boolean) => void;
   initialize: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: any }>;
 }
 
@@ -98,6 +99,31 @@ export const useAuthStore = create<AuthState>()(
       },
 
       initialize: async () => {
+        set({ isLoading: true });
+
+        const { user, session } = await AuthService.getCurrentUser();
+
+        if (user) {
+          const profile = await AuthService.getUserProfile(user.id);
+          set({
+            user,
+            session,
+            profile,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } else {
+          set({
+            user: null,
+            session: null,
+            profile: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      },
+
+      initializeAuth: async () => {
         set({ isLoading: true });
 
         const { user, session } = await AuthService.getCurrentUser();

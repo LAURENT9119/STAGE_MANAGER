@@ -12,7 +12,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading, initializeAuth } = useAuthStore();
+  const { user, profile, isLoading, isAuthenticated, initializeAuth } = useAuthStore();
   const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -25,12 +25,12 @@ export default function DashboardLayout({
   }, [initializeAuth]);
 
   useEffect(() => {
-    if (isInitialized && !loading && !user) {
+    if (isInitialized && !isLoading && !isAuthenticated) {
       router.push('/auth/login');
     }
-  }, [user, loading, isInitialized, router]);
+  }, [isAuthenticated, isLoading, isInitialized, router]);
 
-  if (!isInitialized || loading) {
+  if (!isInitialized || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -38,7 +38,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 
@@ -49,14 +49,14 @@ export default function DashboardLayout({
           <MainNav />
           <div className="ml-auto flex items-center space-x-4">
             <span className="text-sm text-muted-foreground">
-              {user.full_name} ({user.role.toUpperCase()})
+              {profile?.full_name || user.email} ({(profile?.role || 'intern').toUpperCase()})
             </span>
           </div>
         </div>
       </header>
       <div className="flex flex-1">
         <aside className="w-64 border-r bg-muted/10">
-          <DashboardNav userRole={user.role} />
+          <DashboardNav userRole={profile?.role || 'intern'} />
         </aside>
         <main className="flex-1">
           {children}

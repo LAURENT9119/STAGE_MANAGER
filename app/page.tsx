@@ -148,7 +148,7 @@ export default function Home() {
                     </Link>
                   </Button>
                   <Button variant="outline" size="lg" asChild>
-                    <Link href="/contact">Contactez-nous</Link>
+                    <Link href="/test-connection">Tester la connexion</Link>
                   </Button>
                 </div>
               </div>
