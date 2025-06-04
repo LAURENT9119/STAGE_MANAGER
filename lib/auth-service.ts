@@ -44,21 +44,8 @@ export class AuthService {
 
       if (error) throw error;
 
-      // Créer le profil utilisateur
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              full_name: userData.full_name,
-              role: userData.role,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-      }
+      // Le profil utilisateur sera créé automatiquement par le trigger
+      // Pas besoin d'insérer manuellement car le trigger handle_new_user() s'en charge
 
       return { data, error: null };
     } catch (error) {

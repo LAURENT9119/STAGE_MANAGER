@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { internService, Intern } from '@/lib/supabase';
+import { internService, Intern } from '@/lib/intern-service';
 import { useAuthStore } from '@/store/auth-store';
 
 interface UseInternsState {
@@ -29,36 +29,37 @@ export function useInterns(): UseInternsState {
       }
 
       let result;
-      if (user.role === 'tutor') {
-        // Pour les tuteurs, récupérer seulement leurs stagiaires
-        result = await internService.getAll();
-        if (result.data) {
-          const filteredInterns = result.data.filter((intern: Intern) => 
-            intern.tutor_id === user.id
-          );
-          setInterns(filteredInterns);
-        }
-      } else if (user.role === 'intern') {
-        // Pour les stagiaires, récupérer seulement leur propre profil
+      if (user.role === 'intern') {
+        // Pour les stagiaires, récupérer seulement leur profil
         result = await internService.getByUser(user.id);
-        if (result.data) {
-          setInterns([result.data]);
-        } else {
+        if (result.error) {
+          setError(result.error.message);
           setInterns([]);
+        } else {
+          setInterns(result.data ? [result.data] : []);
+        }
+      } else if (user.role === 'tutor') {
+        // Pour les tuteurs, récupérer leurs stagiaires assignés
+        result = await internService.getByTutor(user.id);
+        if (result.error) {
+          setError(result.error.message);
+          setInterns([]);
+        } else {
+          setInterns(result.data || []);
         }
       } else {
-        // Pour admin, hr, finance - récupérer tous les stagiaires
+        // Pour HR et admin, récupérer tous les stagiaires
         result = await internService.getAll();
-        if (result.data) {
-          setInterns(result.data);
+        if (result.error) {
+          setError(result.error.message);
+          setInterns([]);
+        } else {
+          setInterns(result.data || []);
         }
-      }
-
-      if (result?.error) {
-        setError(result.error.message);
       }
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement des stagiaires');
+      setInterns([]);
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,11 @@ export function useInterns(): UseInternsState {
 
   const updateIntern = async (id: string, data: any): Promise<boolean> => {
     try {
-      // Logique de mise à jour à implémenter selon vos besoins
+      const result = await internService.update(id, data);
+      if (result.error) {
+        setError(result.error.message);
+        return false;
+      }
       await fetchInterns(); // Recharger la liste
       return true;
     } catch (err: any) {
@@ -100,6 +105,6 @@ export function useInterns(): UseInternsState {
     error,
     refetch: fetchInterns,
     createIntern,
-    updateIntern,
+    updateIntern
   };
 }

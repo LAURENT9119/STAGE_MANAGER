@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { requestService, Request } from '@/lib/supabase';
+import { requestService, Request } from '@/lib/request-service';
 import { useAuthStore } from '@/store/auth-store';
 
 interface UseRequestsState {
@@ -30,27 +31,21 @@ export function useRequests(): UseRequestsState {
       let result;
       if (user.role === 'intern') {
         // Pour les stagiaires, récupérer seulement leurs demandes
-        // D'abord récupérer l'ID de stage
-        const { data: internData } = await requestService.getAll();
-        if (internData) {
-          const userRequests = internData.filter((request: Request) => 
-            request.intern?.user_id === user.id
-          );
-          setRequests(userRequests);
-        }
+        result = await requestService.getByUser(user.id);
       } else {
         // Pour les autres rôles, récupérer toutes les demandes
         result = await requestService.getAll();
-        if (result.data) {
-          setRequests(result.data);
-        }
       }
 
-      if (result?.error) {
+      if (result.error) {
         setError(result.error.message);
+        setRequests([]);
+      } else {
+        setRequests(result.data || []);
       }
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement des demandes');
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -73,7 +68,11 @@ export function useRequests(): UseRequestsState {
 
   const updateRequest = async (id: string, data: any): Promise<boolean> => {
     try {
-      // Logique de mise à jour à implémenter selon vos besoins
+      const result = await requestService.update(id, data);
+      if (result.error) {
+        setError(result.error.message);
+        return false;
+      }
       await fetchRequests(); // Recharger la liste
       return true;
     } catch (err: any) {
@@ -92,6 +91,6 @@ export function useRequests(): UseRequestsState {
     error,
     refetch: fetchRequests,
     createRequest,
-    updateRequest,
+    updateRequest
   };
 }

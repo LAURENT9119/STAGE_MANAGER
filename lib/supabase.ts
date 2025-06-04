@@ -10,6 +10,10 @@ export { createClient as createBrowserClient } from './supabase/client';
 export const authService = AuthService;
 export { AuthService };
 
+// Export des services
+export { requestService } from './request-service';
+export { internService } from './intern-service';
+
 // Types pour l'authentification
 export interface AuthUser {
   id: string

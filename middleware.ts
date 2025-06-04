@@ -1,44 +1,38 @@
 
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+<old_str>import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
-  // Vérifier que les variables d'environnement Supabase sont définies
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase environment variables');
-    return NextResponse.next();
+  let res = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          res.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Rediriger vers login si non authentifié et que la page nécessite une auth
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
-  const res = NextResponse.next();
-
-  try {
-    const supabase = createMiddlewareClient({ req, res });
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    // Routes protégées
-    const protectedRoutes = ['/dashboard'];
-    const isProtectedRoute = protectedRoutes.some(route => 
-      req.nextUrl.pathname.startsWith(route)
-    );
-
-    // Routes d'authentification
-    const authRoutes = ['/auth/login', '/auth/register'];
-    const isAuthRoute = authRoutes.some(route => 
-      req.nextUrl.pathname.startsWith(route)
-    );
-
-    // Redirection si pas d'authentification sur route protégée
-    if (isProtectedRoute && !session) {
-      return NextResponse.redirect(new URL('/auth/login', req.url));
-    }
-
-    // Redirection si déjà authentifié sur route d'auth
-    if (isAuthRoute && session) {
-      // Récupérer le rôle utilisateur
+  // Si authentifié et sur une page d'auth, rediriger vers le dashboard
+  if (session && (req.nextUrl.pathname.startsWith('/auth/login') || req.nextUrl.pathname.startsWith('/auth/register'))) {
+    if (req.nextUrl.pathname === '/dashboard') {
       try {
         const { data: user } = await supabase
           .from('users')
@@ -60,21 +54,88 @@ export async function middleware(req: NextRequest) {
 
         const role = profile?.role || 'intern';
         return NextResponse.redirect(new URL(`/dashboard/${role}`, req.url));
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-        return NextResponse.redirect(new URL('/dashboard/intern', req.url));
-      }
-    }
-
-  } catch (error) {
-    console.error('Middleware error:', error);
   }
 
   return res;
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
-  ],
-};
+  matcher: ['/dashboard/:path*', '/auth/:path*'],
+};</old_str>
+<new_str>import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  let res = NextResponse.next();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          res.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Rediriger vers login si non authentifié et que la page nécessite une auth
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/auth/login', req.url));
+  }
+
+  // Si authentifié et sur une page d'auth, rediriger vers le dashboard
+  if (session && (req.nextUrl.pathname.startsWith('/auth/login') || req.nextUrl.pathname.startsWith('/auth/register'))) {
+    try {
+      const { data: user } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (user && user.role) {
+        return NextResponse.redirect(new URL(`/dashboard/${user.role}`, req.url));
+      } else {
+        return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+    }
+  }
+
+  // Redirection automatique pour /dashboard vers le rôle spécifique
+  if (session && req.nextUrl.pathname === '/dashboard') {
+    try {
+      const { data: user } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (user && user.role) {
+        return NextResponse.redirect(new URL(`/dashboard/${user.role}`, req.url));
+      } else {
+        return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+    }
+  }
+
+  return res;
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/auth/:path*'],
+};</new_str>
