@@ -36,10 +36,15 @@ export const createClient = () => {
       flowType: 'pkce'
     },
     global: {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      }
+      fetch: (url, options = {}) => {
+        return fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+            'Content-Type': 'application/json',
+          },
+        });
+      },
     },
     realtime: {
       params: {

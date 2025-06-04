@@ -45,6 +45,18 @@ export async function middleware(req: NextRequest) {
           .select('role')
           .eq('id', session.user.id)
           .single();
+          
+        if (user && user.role) {
+          return NextResponse.redirect(new URL(`/dashboard/${user.role}`, req.url));
+        } else {
+          return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        return NextResponse.redirect(new URL('/dashboard/intern', req.url));
+      }
+    }
+          .single();
 
         const role = profile?.role || 'intern';
         return NextResponse.redirect(new URL(`/dashboard/${role}`, req.url));
