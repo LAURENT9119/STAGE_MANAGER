@@ -1,0 +1,107 @@
+[20:07:14.856] Running build in Washington, D.C., USA (East) – iad1 [20:07:14.856] Build machine configuration: 2 cores, 8 GB [20:07:14.875] Cloning github.com/LAURENT9119/STAGE_MANAGER (Branch: main, Commit: be5f5e5) [20:07:15.056] Previous build caches not available [20:07:18.815] Cloning Cahier des charges
+Application Web de Gestion des Stagiaires avec Demandes en Ligne
+________________________________________
+1. Présentation du projet
+Titre : Plateforme de gestion des stagiaires
+Objet : Concevoir et développer une application web permettant de gérer l’ensemble du cycle de vie des stagiaires (création de dossiers, suivi administratif, évaluation) et de faciliter la soumission et le traitement des demandes en ligne (convention, prolongation, congé, etc.).
+________________________________________
+2. Contexte et enjeux
+•	Contexte organisationnel :
+o	Plusieurs services (IT, RH, encadrants, finance, etc.) collaborent pour recruter et suivre les stagiaires.
+o	Processus actuels souvent manuels (Excel, e mails), source d’erreurs et de perte de temps.
+•	Enjeux :
+o	Fiabiliser et centraliser les informations.
+o	Gagner en réactivité (statuts de demandes en temps réel).
+o	Gouvernance : traçabilité des actions et des échanges.
+________________________________________
+3. Objectifs
+•	Optimiser le parcours administratif du stagiaire.
+•	Automatiser le workflow de validation des demandes.
+•	Sécuriser l’accès et la conservation des données personnelles.
+•	Offrir une interface simple pour tous les profils (stagiaires, tuteurs, IT, RH, finance).
+•	Faciliter la génération automatique de documents (conventions, attestations).
+
+________________________________________
+
+
+4. Périmètre fonctionnel
+Module	Fonctions principales
+Gestion des profils	Création/modification des comptes (stagiaire, tuteur, RH)
+Tableau de bord	Vue synthétique : nombre total de stagiaires, nombre de stagiaires en cours, nombre de stagiaires par mois, demandes en cours, etc.
+Gestion des stagiaires	Création fiche stagiaire, historique des activités, pièces jointes, planning
+Workflow de demandes	Dépôt, validation, rejet ou mise en attente de demandes
+Documents & modèles	Génération PDF : conventions, attestations, rapports
+Notifications	E mails et alertes internes/externes sur statut de demande et envoi d’attestation
+Recherche & filtres	Filtrage par nom, service, période, statut, etc.
+Reporting	Export CSV/Excel, graphiques sur indicateurs clés
+________________________________________
+5. Exigences fonctionnelles détaillées
+5.1. Authentification & sécurité
+•	Gestion interne (email + mot de passe) avec vérification de l’email.
+•	Gestion des rôles :
+o	Stagiaire : dépôt et suivi des demandes.
+o	Tuteur : examen et validation des demandes de son équipe.
+o	RH/Finance : vue globale, validation finale, édition des documents.
+5.2. Workflow de demandes
+Pour chaque type de demande (convention, prolongation, congé…) :
+1.	Stagiaire saisit formulaire en ligne + pièces (PDF, images).
+2.	Notification au tuteur pour validation.
+3.	Si validé → envoi à RH/Finance.
+4.	Statut accessible à tout moment et historique des échanges.
+5.3. Gestion documentaire
+•	Bibliothèque de modèles Word/PDF paramétrables.
+•	Génération automatique via fusion de données.
+•	Archivage des documents validés.
+5.4. Reporting et exports
+•	Tableaux de bord interactifs (nombre de stagiaires actifs, demandes par mois…).
+•	Exports CSV/Excel et PDF.
+•	Possibilité d’intégrer un module de visualisation de données (graphes simples).
+________________________________________
+6. Exigences non fonctionnelles
+Domaine	Exigence
+Performance	Temps de réponse < 2 s (pages courantes)
+Sécurité	HTTPS obligatoire, chiffrement des données sensibles
+Compatibilité	Navigateurs récents (Chrome, Firefox, Edge, Safari), mobile, tablettes
+Scalabilité	Support de 50 utilisateurs simultanés
+Maintenance	Code modulaire, tests unitaires (> 80 % de couverture)
+Sauvegarde	Back ups journaliers et restauration sous 24 h
+________________________________________
+7. Contraintes techniques
+•	Framework : Nextjs (TypeScript)
+•	Librairies UI : Shadcn/UI + TailwindCSS
+•	State management : Zustand
+•	BaaS : Supabase (Base de données PostgreSQL + Authetification + Stockage des fichiers)
+•	Hébergement et CI/CD : Vercel
+________________________________________
+8. Livrables
+1.	Étude fonctionnelle détaillée
+2.	Spécifications techniques (architecture, schéma de données)
+3.	Maquettes UX/UI (wireframes + prototype)
+4.	Application en environnements dev, recette et production
+5.	Documentation utilisateur et guide d’installation
+6.	Plan de tests et rapports de recette
+________________________________________
+9. Macro-planning prévisionnel
+Phase	Durée estimée	Livrables clés
+1. Recueil des besoins	3 jours	Cahier des charges validé
+2. Conception	6 jours	Maquettes + spécifications techniques
+3. Développement	45 jours	Versions alpha, beta
+4. Tests & Recette	3 jours	Rapports de tests, homologation
+5. Déploiement & formation	3 jours	Go live, formation des utilisateurs
+Durée totale du projet	60 jours	
+________________________________________
+10. Budget et ressources
+•	Équipe projet :
+o	1 chef de projet
+o	2 développeurs front-end
+o	2 développeurs back-end
+o	1 UX/UI designer (Expérience Utilisateur/Interface Utilisateur)
+o	1 ingénieur QA (Assurance Qualité)
+•	Estimation budgétaire : à chiffrer selon TJM et durée projet
+________________________________________
+11. Critères d’acceptation
+•	Conformité fonctionnelle à 100 % du cahier des charges
+•	Performances validées en recette (tests de charge)
+•	Validation de l’ergonomie par un panel d’utilisateurs
+•	Couverture de tests unitaires ≥ 80 % et tests d’intégration réussis
+completed: 3.940s [20:07:19.191] Running "vercel build" [20:07:19.670] Vercel CLI 42.2.0 [20:07:19.966] Installing dependencies... [20:07:27.316] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful. [20:07:27.475] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported [20:07:27.735] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead [20:07:27.886] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead [20:07:29.663] npm warn deprecated @supabase/auth-helpers-shared@0.7.0: This package is now deprecated - please use the @supabase/ssr package instead. [20:07:30.215] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported [20:07:30.335] npm warn deprecated @supabase/auth-helpers-nextjs@0.10.0: This package is now deprecated - please use the @supabase/ssr package instead. [20:07:32.221] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options. [20:07:38.709] [20:07:38.710] added 551 packages in 18s [20:07:38.710] [20:07:38.710] 155 packages are looking for funding [20:07:38.711] run `npm fund` for details [20:07:38.831] Detected Next.js version: 13.5.1 [20:07:38.832] Running "npm run build" [20:07:38.948] [20:07:38.948] > nextjs@0.1.0 build [20:07:38.949] > next build [20:07:38.949] [20:07:39.482] Creating an optimized production build... [20:07:55.722] Failed to compile. [20:07:55.722] [20:07:55.729] ./app/dashboard/intern/requests/page.tsx [20:07:55.729] Error: [20:07:55.729]  [31mx [0m Expression expected [20:07:55.729] ,-[ [36;1;4m/vercel/path0/app/dashboard/intern/requests/page.tsx [0m:400:1] [20:07:55.729]  [2m400 [0m | <SiteFooter /> [20:07:55.729]  [2m401 [0m | </div> [20:07:55.729]  [2m402 [0m | ); [20:07:55.729]  [2m403 [0m | }oter /> [20:07:55.729] :  [31;1m ^ [0m [20:07:55.729]  [2m404 [0m | </div> [20:07:55.729]  [2m405 [0m | ); [20:07:55.729]  [2m406 [0m | } [20:07:55.729] `---- [20:07:55.729] [20:07:55.729] Caused by: [20:07:55.730] Syntax Error [20:07:55.730] [20:07:55.730] Import trace for requested module: [20:07:55.730] ./app/dashboard/intern/requests/page.tsx [20:07:55.730] [20:07:55.730] ./app/privacy/page.tsx [20:07:55.730] Error: [20:07:55.730]  [31mx [0m Expression expected [20:07:55.730] ,-[ [36;1;4m/vercel/path0/app/privacy/page.tsx [0m:98:1] [20:07:55.730]  [2m 98 [0m | </div> [20:07:55.730]  [2m 99 [0m | ); [20:07:55.730]  [2m100 [0m | } [20:07:55.730]  [2m101 [0m | </main> [20:07:55.730] :  [31;1m ^ [0m [20:07:55.730]  [2m102 [0m | <SiteFooter /> [20:07:55.730]  [2m103 [0m | </div> [20:07:55.730]  [2m104 [0m | ); [20:07:55.730] `---- [20:07:55.730] [20:07:55.730]  [31mx [0m Unterminated regexp literal [20:07:55.730] ,-[ [36;1;4m/vercel/path0/app/privacy/page.tsx [0m:100:1] [20:07:55.730]  [2m100 [0m | } [20:07:55.730]  [2m101 [0m | </main> [20:07:55.730]  [2m102 [0m | <SiteFooter /> [20:07:55.730]  [2m103 [0m | </div> [20:07:55.733] :  [31;1m ^^^^^ [0m [20:07:55.733]  [2m104 [0m | ); [20:07:55.733]  [2m105 [0m | } [20:07:55.738] `---- [20:07:55.738] [20:07:55.738] Caused by: [20:07:55.738] Syntax Error [20:07:55.738] [20:07:55.738] Import trace for requested module: [20:07:55.738] ./app/privacy/page.tsx [20:07:55.739] [20:07:55.742] [20:07:55.743] > Build failed because of webpack errors [20:07:55.791] Error: Command "npm run build" exited with 1 [20:07:56.056] [20:07:58.989] Exiting build container

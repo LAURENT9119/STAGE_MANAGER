@@ -1,0 +1,333 @@
+
+ ✓ Ready in 2.4s
+ ○ Compiling /middleware ...
+ ⨯ ./middleware.ts
+Error:   × Unexpected token `{`. Expected `.` or `(`
+   ╭─[/home/runner/workspace/middleware.ts:2:1]
+ 1 │ 
+ 2 │ <old_str>import { createServerClient } from '@supabase/ssr';
+   ·                 ─
+ 3 │ import { NextResponse, type NextRequest } from 'next/server';
+ 4 │ 
+ 5 │ export async function middleware(req: NextRequest) {
+   ╰────
+
+Caused by:
+    Syntax Error
+ ✓ Compiled /_error in 4.1s (360 modules)
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 78ms
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 60ms
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 60ms
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: Cannot find module 'critters'
+Require stack:
+- /home/runner/workspace/node_modules/next/dist/server/post-process.js
+- /home/runner/workspace/node_modules/next/dist/server/render.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/module.js
+- /home/runner/workspace/node_modules/next/dist/server/route-modules/pages/builtin/_error.js
+- /home/runner/workspace/node_modules/next/dist/server/load-default-error-components.js
+- /home/runner/workspace/node_modules/next/dist/server/dev/next-dev-server.js
+- /home/runner/workspace/node_modules/next/dist/server/next.js
+- /home/runner/workspace/node_modules/next/dist/server/lib/start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 62ms
