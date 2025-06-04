@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,7 +45,7 @@ export default function TestConnectionPage() {
       try {
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        
+
         if (!url || !key) {
           updateTest(0, 'error', 'Variables d\'environnement manquantes');
           return;
@@ -69,7 +68,7 @@ export default function TestConnectionPage() {
             setTimeout(() => reject(new Error('Timeout')), 10000)
           )
         ]) as any;
-        
+
         if (error) {
           updateTest(1, 'error', `Erreur DB: ${error.message}`);
         } else {
@@ -83,40 +82,28 @@ export default function TestConnectionPage() {
         }
       }
 
-      // Test 3: Table users
+      // Test 3: Table profiles
       try {
-        const { data, error } = await Promise.race([
-          supabase.from('users').select('id, email, role').limit(1),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          )
-        ]) as any;
-        
+        const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
         if (error) {
-          updateTest(2, 'error', `Table users: ${error.message}`);
+          updateTest(2, 'error', `Erreur table profiles: ${error.message}`);
         } else {
-          updateTest(2, 'success', `Table accessible (${data?.length || 0} résultats)`);
+          updateTest(2, 'success', `Table profiles accessible`);
         }
       } catch (error: any) {
-        updateTest(2, 'error', `Erreur: ${error.message}`);
+        updateTest(2, 'error', `Erreur table profiles: ${error.message}`);
       }
 
       // Test 4: Table requests
       try {
-        const { data, error } = await Promise.race([
-          supabase.from('requests').select('id, title, status').limit(1),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          )
-        ]) as any;
-        
+        const { data, error } = await supabase.from('requests').select('count', { count: 'exact', head: true });
         if (error) {
-          updateTest(3, 'error', `Table requests: ${error.message}`);
+          updateTest(3, 'error', `Erreur table requests: ${error.message}`);
         } else {
-          updateTest(3, 'success', `Table accessible (${data?.length || 0} résultats)`);
+          updateTest(3, 'success', `Table requests accessible`);
         }
       } catch (error: any) {
-        updateTest(3, 'error', `Erreur: ${error.message}`);
+        updateTest(3, 'error', `Erreur table requests: ${error.message}`);
       }
 
       // Test 5: Authentication
@@ -127,7 +114,7 @@ export default function TestConnectionPage() {
             setTimeout(() => reject(new Error('Timeout')), 5000)
           )
         ]) as any;
-        
+
         if (error) {
           updateTest(4, 'error', `Erreur auth: ${error.message}`);
         } else {
