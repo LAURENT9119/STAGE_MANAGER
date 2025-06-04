@@ -20,7 +20,7 @@ export default function TestConnectionPage() {
   const [tests, setTests] = useState<TestResult[]>([
     { name: 'Configuration Supabase', status: 'loading', message: 'Vérification...' },
     { name: 'Connexion à la base de données', status: 'loading', message: 'Test en cours...' },
-    { name: 'Table profiles', status: 'loading', message: 'Vérification...' },
+    { name: 'Table users', status: 'loading', message: 'Vérification...' },
     { name: 'Table requests', status: 'loading', message: 'Vérification...' },
     { name: 'Authentication', status: 'loading', message: 'Test en cours...' },
   ]);
@@ -63,15 +63,15 @@ export default function TestConnectionPage() {
           updateTest(1, 'error', `Erreur de connexion: ${error.message}`);
         }
 
-        // Test 3: Table profiles
+        // Test 3: Table users
         try {
           const { data, error } = await supabase
-            .from('profiles')
+            .from('users')
             .select('id, email, role')
             .limit(1);
           
           if (error) {
-            updateTest(2, 'error', `Erreur table profiles: ${error.message}`);
+            updateTest(2, 'error', `Erreur table users: ${error.message}`);
           } else {
             updateTest(2, 'success', `Table accessible (${data?.length || 0} résultats)`);
           }

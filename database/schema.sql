@@ -1,11 +1,13 @@
+
+```sql
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Enable RLS
 ALTER DATABASE postgres SET row_security = on;
 
--- Create profiles table
-CREATE TABLE IF NOT EXISTS profiles (
+-- Create users table (renamed from profiles)
+CREATE TABLE IF NOT EXISTS users (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT NOT NULL,
@@ -20,8 +22,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Create interns table
 CREATE TABLE IF NOT EXISTS interns (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  tutor_id UUID REFERENCES profiles(id),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  tutor_id UUID REFERENCES users(id),
   department TEXT NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
@@ -49,11 +51,11 @@ CREATE TABLE IF NOT EXISTS requests (
   submission_date TIMESTAMP WITH TIME ZONE,
   due_date DATE,
   tutor_approved_at TIMESTAMP WITH TIME ZONE,
-  tutor_approved_by UUID REFERENCES profiles(id),
+  tutor_approved_by UUID REFERENCES users(id),
   hr_approved_at TIMESTAMP WITH TIME ZONE,
-  hr_approved_by UUID REFERENCES profiles(id),
+  hr_approved_by UUID REFERENCES users(id),
   finance_approved_at TIMESTAMP WITH TIME ZONE,
-  finance_approved_by UUID REFERENCES profiles(id),
+  finance_approved_by UUID REFERENCES users(id),
   final_approved_at TIMESTAMP WITH TIME ZONE,
   rejection_reason TEXT,
   metadata JSONB DEFAULT '{}',
@@ -71,7 +73,7 @@ CREATE TABLE IF NOT EXISTS documents (
   file_path TEXT NOT NULL,
   file_size INTEGER,
   mime_type TEXT,
-  uploaded_by UUID REFERENCES profiles(id),
+  uploaded_by UUID REFERENCES users(id),
   is_generated BOOLEAN DEFAULT FALSE,
   template_used TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -80,7 +82,7 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Create notifications table
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   type TEXT CHECK (type IN ('info', 'success', 'warning', 'error')) DEFAULT 'info',
@@ -94,7 +96,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS evaluations (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   intern_id UUID REFERENCES interns(id) ON DELETE CASCADE,
-  evaluator_id UUID REFERENCES profiles(id),
+  evaluator_id UUID REFERENCES users(id),
   type TEXT CHECK (type IN ('monthly', 'final', 'self')) NOT NULL,
   period_start DATE NOT NULL,
   period_end DATE NOT NULL,
@@ -112,7 +114,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
 -- Create activity_logs table
 CREATE TABLE IF NOT EXISTS activity_logs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id),
+  user_id UUID REFERENCES users(id),
   action TEXT NOT NULL,
   entity_type TEXT NOT NULL,
   entity_id UUID,
@@ -128,14 +130,14 @@ CREATE TABLE IF NOT EXISTS settings (
   key TEXT UNIQUE NOT NULL,
   value JSONB NOT NULL,
   description TEXT,
-  updated_by UUID REFERENCES profiles(id),
+  updated_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_interns_user_id ON interns(user_id);
 CREATE INDEX IF NOT EXISTS idx_interns_tutor_id ON interns(tutor_id);
 CREATE INDEX IF NOT EXISTS idx_interns_status ON interns(status);
@@ -151,7 +153,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at);
 
 -- Enable Row Level Security
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE interns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
@@ -160,17 +162,17 @@ ALTER TABLE evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for profiles
-CREATE POLICY "Users can view their own profile" ON profiles
+-- RLS Policies for users
+CREATE POLICY "Users can view their own profile" ON users
   FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" ON profiles
+CREATE POLICY "Users can update their own profile" ON users
   FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "HR and admin can view all profiles" ON profiles
+CREATE POLICY "HR and admin can view all users" ON users
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM users 
       WHERE id = auth.uid() 
       AND role IN ('hr', 'admin')
     )
@@ -186,7 +188,7 @@ CREATE POLICY "Tutors can view their assigned interns" ON interns
 CREATE POLICY "HR and admin can view all interns" ON interns
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM users 
       WHERE id = auth.uid() 
       AND role IN ('hr', 'admin')
     )
@@ -202,7 +204,7 @@ CREATE POLICY "Users can view their related requests" ON requests
     )
     OR
     EXISTS (
-      SELECT 1 FROM profiles 
+      SELECT 1 FROM users 
       WHERE id = auth.uid() 
       AND role IN ('hr', 'admin', 'finance')
     )
@@ -234,7 +236,7 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers for automatic timestamps
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_interns_updated_at BEFORE UPDATE ON interns
@@ -253,7 +255,7 @@ CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON settings
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role)
+  INSERT INTO public.users (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
@@ -269,3 +271,4 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+```

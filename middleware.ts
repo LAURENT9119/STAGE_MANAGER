@@ -1,4 +1,3 @@
-
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -11,10 +10,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const res = NextResponse.next();
-  
+
   try {
     const supabase = createMiddlewareClient({ req, res });
-    
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -50,7 +49,7 @@ export async function middleware(req: NextRequest) {
         .single();
 
       const roleFromPath = req.nextUrl.pathname.split('/')[2];
-      
+
       // Redirection selon le rôle utilisateur
       if (profile?.role && roleFromPath && roleFromPath !== profile.role) {
         // Permettre l'accès aux routes génériques pour tous les rôles

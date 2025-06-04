@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -77,12 +76,10 @@ export default function RegisterPage() {
         throw new Error(getErrorMessage(authError.message));
       }
 
+      // Créer le profil utilisateur
       if (authData.user) {
-        console.log('Utilisateur créé:', authData.user.id);
-        
-        // Créer le profil utilisateur
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('users')
           .insert([
             {
               id: authData.user.id,
@@ -94,16 +91,17 @@ export default function RegisterPage() {
 
         if (profileError) {
           console.error('Erreur création profil:', profileError);
-          // Continuer même si le profil n'est pas créé, il sera créé au login
+          setError('Erreur lors de la création du profil utilisateur');
+          return;
         }
-
-        setSuccess('Compte créé avec succès ! Redirection vers la page de connexion...');
-        
-        // Redirection après 2 secondes
-        setTimeout(() => {
-          router.push('/auth/login');
-        }, 2000);
       }
+
+      setSuccess('Compte créé avec succès ! Redirection vers la page de connexion...');
+
+      // Redirection après 2 secondes
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 2000);
     } catch (error: any) {
       console.error('Erreur d\'inscription:', error);
       setError(error.message || 'Une erreur est survenue lors de la création du compte');
@@ -132,7 +130,7 @@ export default function RegisterPage() {
           <MainNav />
         </div>
       </header>
-      
+
       <main className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md">
           <Card>
@@ -149,14 +147,14 @@ export default function RegisterPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               {success && (
                 <Alert className="mb-4 border-green-200 bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-700">{success}</AlertDescription>
                 </Alert>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -171,7 +169,7 @@ export default function RegisterPage() {
                       disabled={loading}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Nom</Label>
                     <Input
@@ -214,7 +212,7 @@ export default function RegisterPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="password">Mot de passe</Label>
                   <div className="relative">

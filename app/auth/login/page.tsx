@@ -46,7 +46,7 @@ export default function LoginPage() {
         
         // Récupérer le profil utilisateur
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
+          .from('users')
           .select('role')
           .eq('id', authData.user.id)
           .single();
@@ -55,7 +55,7 @@ export default function LoginPage() {
           console.error('Erreur de profil:', profileError);
           // Si pas de profil, créer un profil basique
           const { error: createError } = await supabase
-            .from('profiles')
+            .from('users')
             .insert([
               {
                 id: authData.user.id,
