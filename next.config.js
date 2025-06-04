@@ -12,8 +12,7 @@ const nextConfig = {
     scrollRestoration: true,
   },
   
-  // Faster builds
-  swcMinify: true,
+  // Faster builds - swcMinify is now default in Next.js 13+
   
   // Images configuration
   images: {

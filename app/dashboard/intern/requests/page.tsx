@@ -1,356 +1,176 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MainNav } from "@/components/layout/main-nav";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Plus, 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle,
-  FileText
-} from "lucide-react";
-import { useAuthStore } from "@/store/auth-store";
-import { useToast } from "@/hooks/use-toast";
-import { supabase, requestService } from "@/lib/supabase";
+import { useState } from 'react';
+import { useRequests } from '@/hooks/use-requests';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { CreateRequestDialog } from '@/components/requests/create-request-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SiteFooter } from '@/components/layout/site-footer';
+import { Plus, Calendar, FileText, Clock } from 'lucide-react';
 
 export default function InternRequestsPage() {
-  const { user } = useAuthStore();
-  const { toast } = useToast();
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    type: "",
-    title: "",
-    description: "",
-    start_date: "",
-    end_date: "",
-  });
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { requests, isLoading, error, refetch } = useRequests();
 
-  useEffect(() => {
-    if (user) {
-      loadRequests();
-    }
-  }, [user]);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      // Get intern data first, then requests
-      const { data: internData } = await supabase
-        .from('interns')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (internData) {
-        const { data, error } = await requestService.getByIntern(internData.id);
-        if (error) {
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger les demandes",
-            variant: "destructive",
-          });
-        } else {
-          setRequests(data || []);
-        }
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      // Get intern data first
-      const { data: internData } = await supabase
-        .from('interns')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (!internData) {
-        toast({
-          title: "Erreur",
-          description: "Profil stagiaire non trouvé",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const requestData = {
-        ...formData,
-        intern_id: internData.id,
-        status: 'pending'
-      };
-
-      const { data, error } = await requestService.create(requestData);
-
-      if (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de créer la demande",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Succès",
-          description: "Demande créée avec succès",
-        });
-        setIsDialogOpen(false);
-        setFormData({
-          type: "",
-          title: "",
-          description: "",
-          start_date: "",
-          end_date: "",
-        });
-        loadRequests();
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
       case 'approved':
-        return <Badge variant="default"><CheckCircle className="w-3 h-3 mr-1" />Approuvée</Badge>;
+        return 'bg-green-100 text-green-800';
       case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejetée</Badge>;
-      case 'completed':
-        return <Badge variant="outline"><CheckCircle className="w-3 h-3 mr-1" />Terminée</Badge>;
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getTypeLabel = (type: string) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'leave':
-        return 'Congé';
-      case 'extension':
-        return 'Prolongation';
-      case 'evaluation':
-        return 'Évaluation';
-      case 'document':
-        return 'Document';
-      case 'support':
-        return 'Support';
+      case 'convention':
+        return <FileText className="h-4 w-4" />;
+      case 'prolongation':
+        return <Calendar className="h-4 w-4" />;
+      case 'conge':
+        return <Clock className="h-4 w-4" />;
       default:
-        return type;
+        return <FileText className="h-4 w-4" />;
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="text-red-800 font-medium">Erreur de chargement</h3>
+              <p className="text-red-600">
+                Impossible de charger vos demandes. Veuillez réessayer.
+              </p>
+              <Button 
+                onClick={() => refetch()}
+                className="mt-2"
+                variant="outline"
+              >
+                Réessayer
+              </Button>
+            </div>
+          </div>
+        </div>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <MainNav />
-
-      <div className="flex-1 flex">
-        <aside className="w-64 border-r bg-muted/10">
-          <DashboardNav role="intern" />
-        </aside>
-
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Mes Demandes</h1>
-                <p className="text-muted-foreground">
-                  Gérez vos demandes de congés, prolongations et autres
-                </p>
-              </div>
-
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nouvelle demande
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Créer une nouvelle demande</DialogTitle>
-                    <DialogDescription>
-                      Remplissez les informations de votre demande
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="type">Type de demande</Label>
-                      <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="leave">Congé</SelectItem>
-                          <SelectItem value="extension">Prolongation</SelectItem>
-                          <SelectItem value="evaluation">Évaluation</SelectItem>
-                          <SelectItem value="document">Document</SelectItem>
-                          <SelectItem value="support">Support</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Titre</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                        placeholder="Titre de la demande"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        placeholder="Décrivez votre demande"
-                        required
-                      />
-                    </div>
-
-                    {(formData.type === 'leave' || formData.type === 'extension') && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="start_date">Date de début</Label>
-                          <Input
-                            id="start_date"
-                            type="date"
-                            value={formData.start_date}
-                            onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="end_date">Date de fin</Label>
-                          <Input
-                            id="end_date"
-                            type="date"
-                            value={formData.end_date}
-                            onChange={(e) => setFormData({...formData, end_date: e.target.value})}
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    <div className="flex gap-2 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                        Annuler
-                      </Button>
-                      <Button type="submit" className="flex-1">
-                        Créer
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
+      <div className="flex-1 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">Mes Demandes</h1>
+              <p className="text-muted-foreground mt-2">
+                Gérez vos demandes de stage et suivez leur statut
+              </p>
             </div>
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle demande
+            </Button>
+          </div>
 
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-3 w-full mb-2" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : requests.length === 0 ? (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Liste des demandes
-                </CardTitle>
-                <CardDescription>
-                  Historique de toutes vos demandes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="text-center py-6">Chargement...</div>
-                ) : requests.length === 0 ? (
-                  <div className="text-center py-6 text-muted-foreground">
-                    Aucune demande trouvée
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Titre</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead>Date de création</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {requests.map((request: any) => (
-                        <TableRow key={request.id}>
-                          <TableCell>{getTypeLabel(request.type)}</TableCell>
-                          <TableCell className="font-medium">{request.title}</TableCell>
-                          <TableCell className="max-w-xs truncate">{request.description}</TableCell>
-                          <TableCell>{getStatusBadge(request.status)}</TableCell>
-                          <TableCell>
-                            {new Date(request.created_at).toLocaleDateString('fr-FR')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+              <CardContent className="text-center py-12">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucune demande</h3>
+                <p className="text-muted-foreground mb-4">
+                  Vous n'avez pas encore créé de demande.
+                </p>
+                <Button onClick={() => setIsCreateOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Créer ma première demande
+                </Button>
               </CardContent>
             </Card>
-          </div>
-        </main>
-      </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {requests.map((request) => (
+                <Card key={request.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        {getTypeIcon(request.type)}
+                        {request.type === 'convention' && 'Convention'}
+                        {request.type === 'prolongation' && 'Prolongation'}
+                        {request.type === 'conge' && 'Congé'}
+                      </CardTitle>
+                      <Badge className={getStatusColor(request.status)}>
+                        {request.status === 'pending' && 'En attente'}
+                        {request.status === 'approved' && 'Approuvé'}
+                        {request.status === 'rejected' && 'Rejeté'}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      Créé le {new Date(request.created_at).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {request.description && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {request.description}
+                      </p>
+                    )}
+                    {request.start_date && (
+                      <div className="text-xs text-muted-foreground">
+                        <strong>Début :</strong> {new Date(request.start_date).toLocaleDateString()}
+                      </div>
+                    )}
+                    {request.end_date && (
+                      <div className="text-xs text-muted-foreground">
+                        <strong>Fin :</strong> {new Date(request.end_date).toLocaleDateString()}
+                      </div>
+                    )}
+                    {request.comments && (
+                      <div className="mt-2 p-2 bg-muted rounded text-xs">
+                        <strong>Commentaires :</strong> {request.comments}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
-      <SiteFooter />r />
+          <CreateRequestDialog
+            open={isCreateOpen}
+            onOpenChange={setIsCreateOpen}
+            onSuccess={() => {
+              setIsCreateOpen(false);
+              refetch();
+            }}
+          />
+        </div>
+      </div>
+      <SiteFooter />
     </div>
   );
 }
