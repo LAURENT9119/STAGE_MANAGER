@@ -4,7 +4,21 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
+  // Vérifier que les variables d'environnement Supabase sont définies
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables');
+    return NextResponse.next();
+  }
+
   const res = NextResponse.next();
+  
+  try {
+    const supabase = createMiddlewareClient({ req, res });
+  } catch (error) {
+    console.error('Supabase middleware error:', error);
+    return NextResponse.next();
+  }
+  
   const supabase = createMiddlewareClient({ req, res });
   
   const {

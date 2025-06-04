@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['@node-rs/argon2'],
   experimental: {
     serverComponentsExternalPackages: ['@supabase/auth-helpers-nextjs'],
     forceSwcTransforms: true,
