@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['@node-rs/argon2'],
+  serverExternalPackages: ['@node-rs/argon2', '@supabase/auth-helpers-nextjs'],
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/auth-helpers-nextjs'],
     forceSwcTransforms: true,
   },
   images: {

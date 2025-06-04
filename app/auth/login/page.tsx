@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MainNav } from '@/components/layout/main-nav';
+import { SiteFooter } from '@/components/layout/site-footer';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,8 +60,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <MainNav />
+        </div>
+      </header>
+      <main className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             Connexion
@@ -161,6 +169,8 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </Card>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

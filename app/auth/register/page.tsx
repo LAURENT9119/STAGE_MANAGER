@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import { AuthService } from '@/lib/auth-service';
+import { MainNav } from '@/components/layout/main-nav';
+import { SiteFooter } from '@/components/layout/site-footer';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -35,8 +37,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center">
+          <MainNav />
+        </div>
+      </header>
+      <main className="flex-1 flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Inscription</CardTitle>
           <CardDescription>
@@ -109,6 +117,8 @@ export default function RegisterPage() {
           </div>
         </CardContent>
       </Card>
+      </main>
+      <SiteFooter />
     </div>
   );
 }

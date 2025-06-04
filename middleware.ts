@@ -14,12 +14,6 @@ export async function middleware(req: NextRequest) {
   
   try {
     const supabase = createMiddlewareClient({ req, res });
-  } catch (error) {
-    console.error('Supabase middleware error:', error);
-    return NextResponse.next();
-  }
-  
-  const supabase = createMiddlewareClient({ req, res });
   
   const {
     data: { session },
