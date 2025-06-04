@@ -1,53 +1,48 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
-import { MainNav } from "@/components/layout/main-nav";
-import { DashboardNav } from "@/components/layout/dashboard-nav";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
+import { useState, useEffect } from 'react';
+import { useInterns } from '@/hooks/use-interns';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { 
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Download, FileText, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { MainNav } from "@/components/layout/main-nav";
+import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  FileText, 
-  Download, 
-  Upload, 
-  Filter, 
-  Search, 
-  Plus,
-  CheckCircle,
+  FileCheck,
   Clock,
   AlertCircle,
-  FileCheck,
+  Filter, 
+  Search, 
   FilePlus
 } from "lucide-react";
-import { useInterns } from "@/hooks/use-interns";
-import { useToast } from "@/hooks/use-toast";
 
 interface Document {
   id: string;
@@ -84,42 +79,32 @@ export default function HRDocumentsPage() {
   }, []);
 
   const loadDocuments = async () => {
+    setLoading(true);
     try {
-      // Simuler le chargement des documents depuis la base de données
+      // Simulation de données - remplacez par votre service
       const mockDocuments: Document[] = [
         {
           id: '1',
-          name: 'Convention de stage - Marie Dubois',
+          name: 'Convention de stage - Jean Dupont',
           type: 'convention',
-          status: 'approved',
-          internName: 'Marie Dubois',
+          status: 'pending',
+          internName: 'Jean Dupont',
           internId: '1',
-          createdDate: '2024-01-15T00:00:00Z',
-          reviewedDate: '2024-01-16T00:00:00Z',
+          createdDate: new Date().toISOString(),
           size: '245 KB'
         },
         {
           id: '2',
-          name: 'Rapport de stage - Pierre Martin',
-          type: 'rapport',
-          status: 'pending',
-          internName: 'Pierre Martin',
-          internId: '2',
-          createdDate: '2024-01-20T00:00:00Z',
-          size: '1.2 MB'
-        },
-        {
-          id: '3',
-          name: 'Attestation de stage - Sophie Bernard',
+          name: 'Attestation de stage - Sophie Martin',
           type: 'attestation',
-          status: 'generated',
-          internName: 'Sophie Bernard',
-          internId: '3',
-          createdDate: '2024-01-22T00:00:00Z',
+          status: 'approved',
+          internName: 'Sophie Martin',
+          internId: '2',
+          createdDate: new Date(Date.now() - 86400000).toISOString(),
+          reviewedDate: new Date().toISOString(),
           size: '156 KB'
         }
       ];
-
       setDocuments(mockDocuments);
     } catch (error) {
       console.error('Erreur lors du chargement des documents:', error);
@@ -130,51 +115,6 @@ export default function HRDocumentsPage() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const generateDocument = async () => {
-    if (!newDocument.internId || !newDocument.type) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un stagiaire et un type de document",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const intern = interns.find(i => i.id === newDocument.internId);
-      if (!intern) return;
-
-      const document: Document = {
-        id: Date.now().toString(),
-        name: `${getTypeLabel(newDocument.type)} - ${intern.user.full_name}`,
-        type: newDocument.type,
-        status: 'generated',
-        internName: intern.user.full_name,
-        internId: newDocument.internId,
-        createdDate: new Date().toISOString(),
-        size: '150 KB',
-        notes: newDocument.notes
-      };
-
-      setDocuments(prev => [document, ...prev]);
-
-      toast({
-        title: "Document généré",
-        description: `Le document ${getTypeLabel(newDocument.type)} a été généré avec succès`
-      });
-
-      setGenerateOpen(false);
-      setNewDocument({ type: "convention", internId: "", notes: "" });
-    } catch (error) {
-      console.error('Erreur lors de la génération:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de générer le document",
-        variant: "destructive",
-      });
     }
   };
 
@@ -215,54 +155,73 @@ export default function HRDocumentsPage() {
     });
   };
 
-  const exportDocuments = () => {
-    const csvContent = [
-      ['Document', 'Type', 'Stagiaire', 'Statut', 'Date création', 'Date révision', 'Taille'].join(','),
-      ...filteredDocuments.map(doc => [
-        `"${doc.name}"`,
-        getTypeLabel(doc.type),
-        doc.internName,
-        getStatusLabel(doc.status),
-        new Date(doc.createdDate).toLocaleDateString('fr-FR'),
-        doc.reviewedDate ? new Date(doc.reviewedDate).toLocaleDateString('fr-FR') : 'N/A',
-        doc.size
-      ].join(','))
-    ].join('\n');
+  const generateDocument = async () => {
+    try {
+      const selectedIntern = interns.find(i => i.id === newDocument.internId);
+      if (!selectedIntern) return;
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `documents_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+      const newDoc: Document = {
+        id: Date.now().toString(),
+        name: `${getTypeLabel(newDocument.type)} - ${selectedIntern.user?.full_name}`,
+        type: newDocument.type,
+        status: 'generated',
+        internName: selectedIntern.user?.full_name || 'Inconnu',
+        internId: newDocument.internId,
+        createdDate: new Date().toISOString(),
+        size: '180 KB',
+        notes: newDocument.notes
+      };
 
-    toast({
-      title: "Export réussi",
-      description: "La liste des documents a été exportée avec succès"
-    });
+      setDocuments(prev => [newDoc, ...prev]);
+      setGenerateOpen(false);
+      setNewDocument({ type: "convention", internId: "", notes: "" });
+
+      toast({
+        title: "Document généré",
+        description: "Le document a été généré avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le document",
+        variant: "destructive",
+      });
+    }
   };
 
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = 
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.internName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
-    const matchesType = typeFilter === "all" || doc.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
-  });
-
   const getStatusBadge = (status: Document['status']) => {
-    switch (status) {
-      case 'approved':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Approuvé</Badge>;
-      case 'pending':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Rejeté</Badge>;
-      case 'generated':
-        return <Badge variant="secondary"><FileCheck className="w-3 h-3 mr-1" />Généré</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+    const variants = {
+      pending: 'secondary',
+      approved: 'default',
+      rejected: 'destructive',
+      generated: 'outline'
+    } as const;
+
+    const labels = {
+      pending: 'En attente',
+      approved: 'Approuvé',
+      rejected: 'Rejeté',
+      generated: 'Généré'
+    };
+
+    return (
+      <Badge variant={variants[status]}>
+        {labels[status]}
+      </Badge>
+    );
+  };
+
+  const getTypeLabel = (type: Document['type']) => {
+    const labels = {
+      convention: 'Convention',
+      attestation: 'Attestation',
+      rapport: 'Rapport',
+      evaluation: 'Évaluation',
+      contrat: 'Contrat',
+      autre: 'Autre'
+    };
+    return labels[type];
   };
 
   const getStatusLabel = (status: Document['status']) => {
@@ -272,18 +231,6 @@ export default function HRDocumentsPage() {
       case 'rejected': return 'Rejeté';
       case 'generated': return 'Généré';
       default: return status;
-    }
-  };
-
-  const getTypeLabel = (type: Document['type']) => {
-    switch (type) {
-      case 'convention': return 'Convention';
-      case 'attestation': return 'Attestation';
-      case 'rapport': return 'Rapport';
-      case 'evaluation': return 'Évaluation';
-      case 'contrat': return 'Contrat';
-      case 'autre': return 'Autre';
-      default: return type;
     }
   };
 
@@ -297,6 +244,15 @@ export default function HRDocumentsPage() {
   };
 
   const stats = getDocumentStats();
+
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.internName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
+    const matchesType = typeFilter === "all" || doc.type === typeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   if (loading || internsLoading) {
     return (
@@ -324,6 +280,32 @@ export default function HRDocumentsPage() {
     );
   }
 
+  const exportDocuments = () => {
+    const csvContent = [
+      ['Document', 'Type', 'Stagiaire', 'Statut', 'Date création', 'Date révision', 'Taille'].join(','),
+      ...filteredDocuments.map(doc => [
+        `"${doc.name}"`,
+        getTypeLabel(doc.type),
+        doc.internName,
+        getStatusLabel(doc.status),
+        new Date(doc.createdDate).toLocaleDateString('fr-FR'),
+        doc.reviewedDate ? new Date(doc.reviewedDate).toLocaleDateString('fr-FR') : 'N/A',
+        doc.size
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `documents_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toast({
+      title: "Export réussi",
+      description: "La liste des documents a été exportée avec succès"
+    });
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -344,80 +326,10 @@ export default function HRDocumentsPage() {
                   Gérez les documents des stagiaires ({documents.length} documents)
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={exportDocuments} variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
-                  Exporter
-                </Button>
-                <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <FilePlus className="mr-2 h-4 w-4" />
-                      Générer document
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Générer un document</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="type" className="text-right">
-                          Type
-                        </Label>
-                        <Select value={newDocument.type} onValueChange={(value) => setNewDocument({ ...newDocument, type: value as Document['type'] })}>
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="convention">Convention de stage</SelectItem>
-                            <SelectItem value="attestation">Attestation</SelectItem>
-                            <SelectItem value="contrat">Contrat</SelectItem>
-                            <SelectItem value="evaluation">Évaluation</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="intern" className="text-right">
-                          Stagiaire
-                        </Label>
-                        <Select value={newDocument.internId} onValueChange={(value) => setNewDocument({ ...newDocument, internId: value })}>
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Sélectionner un stagiaire" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {interns.map(intern => (
-                              <SelectItem key={intern.id} value={intern.id}>
-                                {intern.user.full_name} - {intern.department}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="notes" className="text-right">
-                          Notes
-                        </Label>
-                        <Textarea
-                          id="notes"
-                          value={newDocument.notes}
-                          onChange={(e) => setNewDocument({ ...newDocument, notes: e.target.value })}
-                          className="col-span-3"
-                          placeholder="Notes supplémentaires..."
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setGenerateOpen(false)}>
-                        Annuler
-                      </Button>
-                      <Button onClick={generateDocument}>
-                        Générer
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <Button onClick={() => setGenerateOpen(true)}>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Générer un document
+              </Button>
             </div>
 
             {/* Statistiques */}
@@ -496,6 +408,7 @@ export default function HRDocumentsPage() {
                     <SelectItem value="rapport">Rapport</SelectItem>
                     <SelectItem value="evaluation">Évaluation</SelectItem>
                     <SelectItem value="contrat">Contrat</SelectItem>
+                    <SelectItem value="autre">Autre</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -516,78 +429,80 @@ export default function HRDocumentsPage() {
             </div>
 
             {/* Table des documents */}
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Stagiaire</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Date création</TableHead>
-                    <TableHead>Taille</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        Aucun document trouvé
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredDocuments.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{doc.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getTypeLabel(doc.type)}</TableCell>
-                        <TableCell>{doc.internName}</TableCell>
-                        <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                        <TableCell>
-                          {new Date(doc.createdDate).toLocaleDateString('fr-FR')}
-                        </TableCell>
-                        <TableCell>{doc.size}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => downloadDocument(doc)}
-                            >
-                              <Download className="h-3 w-3 mr-1" />
-                              Télécharger
-                            </Button>
-                            {doc.status === 'pending' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Documents ({filteredDocuments.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {filteredDocuments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Aucun document trouvé</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nom du document</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Stagiaire</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Date de création</TableHead>
+                        <TableHead>Taille</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredDocuments.map((doc) => (
+                        <TableRow key={doc.id}>
+                          <TableCell className="font-medium">{doc.name}</TableCell>
+                          <TableCell>{getTypeLabel(doc.type)}</TableCell>
+                          <TableCell>{doc.internName}</TableCell>
+                          <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                          <TableCell>
+                            {new Date(doc.createdDate).toLocaleDateString('fr-FR')}
+                          </TableCell>
+                          <TableCell>{doc.size}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => {
-                                  setSelectedDocument(doc);
-                                  setReviewOpen(true);
-                                }}
+                                onClick={() => downloadDocument(doc)}
                               >
-                                Réviser
+                                <Download className="h-3 w-3 mr-1" />
+                                Télécharger
                               </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                              {doc.status === 'pending' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedDocument(doc);
+                                    setReviewOpen(true);
+                                  }}
+                                >
+                                  Réviser
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Dialog de révision */}
             <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Réviser le document</DialogTitle>
+                  <DialogDescription>
+                    Approuvez ou rejetez ce document avec des commentaires optionnels
+                  </DialogDescription>
                 </DialogHeader>
                 {selectedDocument && (
                   <div className="space-y-4">
@@ -626,6 +541,78 @@ export default function HRDocumentsPage() {
                     </div>
                   </div>
                 )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Dialog de génération */}
+            <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Générer un document</DialogTitle>
+                  <DialogDescription>
+                    Créez un nouveau document pour un stagiaire
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="docType">Type de document</Label>
+                    <Select value={newDocument.type} onValueChange={(value: Document['type']) => 
+                      setNewDocument(prev => ({ ...prev, type: value }))
+                    }>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="convention">Convention de stage</SelectItem>
+                        <SelectItem value="attestation">Attestation</SelectItem>
+                        <SelectItem value="rapport">Rapport de stage</SelectItem>
+                        <SelectItem value="evaluation">Évaluation</SelectItem>
+                        <SelectItem value="contrat">Contrat</SelectItem>
+                        <SelectItem value="autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="internSelect">Stagiaire</Label>
+                    <Select value={newDocument.internId} onValueChange={(value) => 
+                      setNewDocument(prev => ({ ...prev, internId: value }))
+                    }>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un stagiaire" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {interns.map((intern) => (
+                          <SelectItem key={intern.id} value={intern.id}>
+                            {intern.user?.full_name} - {intern.department}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="docNotes">Notes (optionnel)</Label>
+                    <Textarea
+                      id="docNotes"
+                      placeholder="Ajoutez des notes sur ce document..."
+                      value={newDocument.notes}
+                      onChange={(e) => setNewDocument(prev => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setGenerateOpen(false)}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      onClick={generateDocument}
+                      disabled={!newDocument.internId}
+                    >
+                      Générer
+                    </Button>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>

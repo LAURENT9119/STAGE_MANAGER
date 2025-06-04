@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface Request {
@@ -115,10 +116,28 @@ export const requestService = {
 
   async create(requestData: Partial<Request>) {
     try {
+      // Récupérer l'utilisateur actuel
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('Utilisateur non authentifié');
+      }
+
+      // Récupérer l'intern_id associé à l'utilisateur
+      const { data: intern, error: internError } = await supabase
+        .from('interns')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (internError || !intern) {
+        throw new Error('Profil stagiaire non trouvé');
+      }
+
       const { data, error } = await supabase
         .from('requests')
         .insert({
           ...requestData,
+          intern_id: intern.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })

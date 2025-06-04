@@ -1,11 +1,11 @@
-
 "use client";
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { supabase } from '@/lib/supabase/client';
+import { useAuthStore } from '@/store/auth-store';
+import { requestService } from '@/lib/request-service';
 import {
   Dialog,
   DialogContent,
@@ -44,8 +44,6 @@ const requestSchema = z.object({
   title: z.string().min(5, "Le titre doit contenir au moins 5 caractères"),
   description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-  start_date: z.date().optional(),
-  end_date: z.date().optional(),
   due_date: z.date().optional(),
 });
 
@@ -63,6 +61,7 @@ export function CreateRequestDialog({
   onSuccess
 }: CreateRequestDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, profile } = useAuthStore();
   const { toast } = useToast();
 
   const form = useForm<RequestFormData>({
@@ -76,41 +75,29 @@ export function CreateRequestDialog({
     try {
       setIsSubmitting(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user || !profile) {
         throw new Error('Utilisateur non authentifié');
       }
 
-      // Récupérer l'intern_id
-      const { data: intern } = await supabase
-        .from('interns')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!intern) {
-        throw new Error('Profil stagiaire non trouvé');
+      // Trouver l'intern_id associé à l'utilisateur
+      if (profile.role !== 'intern') {
+        throw new Error('Seuls les stagiaires peuvent créer des demandes');
       }
 
       const requestData = {
-        intern_id: intern.id,
         type: data.type,
         title: data.title,
         description: data.description,
         priority: data.priority,
-        status: 'pending',
-        start_date: data.start_date?.toISOString(),
-        end_date: data.end_date?.toISOString(),
+        status: 'draft' as const,
         due_date: data.due_date?.toISOString(),
         metadata: {},
       };
 
-      const { error } = await supabase
-        .from('requests')
-        .insert([requestData]);
+      const result = await requestService.create(requestData);
 
-      if (error) {
-        throw error;
+      if (result.error) {
+        throw new Error(result.error.message);
       }
 
       toast({
@@ -119,12 +106,13 @@ export function CreateRequestDialog({
       });
 
       form.reset();
+      onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la création de la demande:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la demande. Veuillez réessayer.",
+        description: error.message || "Impossible de créer la demande. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -226,139 +214,54 @@ export function CreateRequestDialog({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="start_date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date de début</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
-                            ) : (
-                              <span>Sélectionner</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="end_date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date de fin</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
-                            ) : (
-                              <span>Sélectionner</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="due_date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date limite</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: fr })
-                            ) : (
-                              <span>Sélectionner</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="due_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date limite</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", { locale: fr })
+                          ) : (
+                            <span>Sélectionner une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date < new Date() || date < new Date("1900-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Annuler
               </Button>
