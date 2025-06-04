@@ -1,5 +1,5 @@
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
 
 export const createClient = () => {
@@ -13,5 +13,5 @@ export const createClient = () => {
     throw new Error('Variables d\'environnement Supabase manquantes');
   }
 
-  return createClientComponentClient<Database>();
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey);
 };

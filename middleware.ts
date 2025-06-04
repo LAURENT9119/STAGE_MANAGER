@@ -1,3 +1,4 @@
+
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -37,34 +38,27 @@ export async function middleware(req: NextRequest) {
 
     // Redirection si déjà authentifié sur route d'auth
     if (isAuthRoute && session) {
-      return NextResponse.redirect(new URL('/dashboard/intern', req.url));
-    }
+      // Récupérer le rôle utilisateur
+      try {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-    // Vérification des rôles pour les routes dashboard spécifiques
-    if (session && req.nextUrl.pathname.startsWith('/dashboard/')) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      const roleFromPath = req.nextUrl.pathname.split('/')[2];
-
-      // Redirection selon le rôle utilisateur
-      if (profile?.role && roleFromPath && roleFromPath !== profile.role) {
-        // Permettre l'accès aux routes génériques pour tous les rôles
-        const allowedGenericRoutes = ['settings', 'notifications', 'profile'];
-        if (!allowedGenericRoutes.includes(roleFromPath)) {
-          return NextResponse.redirect(new URL(`/dashboard/${profile.role}`, req.url));
-        }
+        const role = profile?.role || 'intern';
+        return NextResponse.redirect(new URL(`/dashboard/${role}`, req.url));
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return NextResponse.redirect(new URL('/dashboard/intern', req.url));
       }
     }
 
-    return res;
   } catch (error) {
-    console.error('Supabase middleware error:', error);
-    return NextResponse.next();
+    console.error('Middleware error:', error);
   }
+
+  return res;
 }
 
 export const config = {

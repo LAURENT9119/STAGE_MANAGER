@@ -30,19 +30,25 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       
+      console.log('Tentative de connexion pour:', email);
+      
       // Test de connexion d'abord
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(),
+        password: password,
       });
 
       if (authError) {
         console.error('Erreur d\'authentification:', authError);
-        throw new Error(getErrorMessage(authError.message));
+        setError(getErrorMessage(authError.message));
+        return;
       }
 
       if (authData.user) {
         console.log('Utilisateur connecté:', authData.user.id);
+        
+        // Attendre un peu pour que la session soit établie
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Récupérer le profil utilisateur
         const { data: profile, error: profileError } = await supabase
@@ -69,13 +75,23 @@ export default function LoginPage() {
             console.error('Erreur création profil:', createError);
           }
           
-          router.push('/dashboard/intern');
+          // Rediriger avec un délai
+          setTimeout(() => {
+            router.push('/dashboard/intern');
+            router.refresh();
+          }, 500);
         } else if (profile?.role) {
           console.log('Profil trouvé, rôle:', profile.role);
-          router.push(`/dashboard/${profile.role}`);
+          setTimeout(() => {
+            router.push(`/dashboard/${profile.role}`);
+            router.refresh();
+          }, 500);
         } else {
           console.log('Pas de rôle défini, redirection vers intern');
-          router.push('/dashboard/intern');
+          setTimeout(() => {
+            router.push('/dashboard/intern');
+            router.refresh();
+          }, 500);
         }
       }
     } catch (error: any) {
@@ -96,7 +112,21 @@ export default function LoginPage() {
     if (errorMessage.includes('Too many requests')) {
       return 'Trop de tentatives de connexion. Veuillez réessayer plus tard';
     }
+    if (errorMessage.includes('Failed to fetch')) {
+      return 'Erreur de connexion au serveur. Vérifiez votre connexion internet.';
+    }
     return errorMessage;
+  };
+
+  // Fonction pour tester avec un compte prédéfini
+  const loginWithTestAccount = async (testEmail: string) => {
+    setEmail(testEmail);
+    setPassword('password123');
+    
+    // Petit délai pour que l'utilisateur voie le changement
+    setTimeout(() => {
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }, 100);
   };
 
   return (
@@ -126,14 +156,49 @@ export default function LoginPage() {
 
               {/* Comptes de test */}
               <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800 mb-2">Comptes de test disponibles :</p>
+                <p className="text-sm font-medium text-blue-800 mb-2">Comptes de test (cliquez pour utiliser) :</p>
                 <div className="text-xs text-blue-700 space-y-1">
-                  <div>Admin: admin@company.com</div>
-                  <div>RH: hr@company.com</div>
-                  <div>Finance: finance@company.com</div>
-                  <div>Tuteur: marie.laurent@company.com</div>
-                  <div>Stagiaire: jean.dupont@example.com</div>
-                  <div className="font-medium">Mot de passe: password123</div>
+                  <button 
+                    type="button"
+                    onClick={() => loginWithTestAccount('admin@company.com')}
+                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
+                    disabled={loading}
+                  >
+                    Admin: admin@company.com
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => loginWithTestAccount('hr@company.com')}
+                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
+                    disabled={loading}
+                  >
+                    RH: hr@company.com
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => loginWithTestAccount('finance@company.com')}
+                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
+                    disabled={loading}
+                  >
+                    Finance: finance@company.com
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => loginWithTestAccount('marie.laurent@company.com')}
+                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
+                    disabled={loading}
+                  >
+                    Tuteur: marie.laurent@company.com
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => loginWithTestAccount('jean.dupont@example.com')}
+                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
+                    disabled={loading}
+                  >
+                    Stagiaire: jean.dupont@example.com
+                  </button>
+                  <div className="font-medium mt-2">Mot de passe: password123</div>
                 </div>
               </div>
 
