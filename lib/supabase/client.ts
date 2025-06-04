@@ -7,9 +7,10 @@ export const createClient = () => {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error('Missing Supabase environment variables. Please check your .env.local file.');
-    console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseKey ? 'SET' : 'MISSING');
+    console.error('Variables d\'environnement Supabase manquantes:');
+    console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'DÉFINIE' : 'MANQUANTE');
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseKey ? 'DÉFINIE' : 'MANQUANTE');
+    throw new Error('Variables d\'environnement Supabase manquantes');
   }
 
   return createClientComponentClient<Database>();

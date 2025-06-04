@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,9 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { MainNav } from '@/components/layout/main-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +21,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,32 +28,75 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const supabase = createClient();
+      
+      // Test de connexion d'abord
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (authError) {
+        console.error('Erreur d\'authentification:', authError);
+        throw new Error(getErrorMessage(authError.message));
+      }
 
-      if (data.user) {
+      if (authData.user) {
+        console.log('Utilisateur connecté:', authData.user.id);
+        
         // Récupérer le profil utilisateur
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
-          .eq('id', data.user.id)
+          .eq('id', authData.user.id)
           .single();
 
-        if (profile?.role) {
+        if (profileError) {
+          console.error('Erreur de profil:', profileError);
+          // Si pas de profil, créer un profil basique
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                id: authData.user.id,
+                email: authData.user.email,
+                full_name: authData.user.user_metadata?.full_name || email.split('@')[0],
+                role: 'intern'
+              }
+            ]);
+          
+          if (createError) {
+            console.error('Erreur création profil:', createError);
+          }
+          
+          router.push('/dashboard/intern');
+        } else if (profile?.role) {
+          console.log('Profil trouvé, rôle:', profile.role);
           router.push(`/dashboard/${profile.role}`);
         } else {
+          console.log('Pas de rôle défini, redirection vers intern');
           router.push('/dashboard/intern');
         }
       }
     } catch (error: any) {
-      setError(error.message || 'Une erreur est survenue');
+      console.error('Erreur de connexion:', error);
+      setError(error.message || 'Une erreur est survenue lors de la connexion');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getErrorMessage = (errorMessage: string) => {
+    if (errorMessage.includes('Invalid login credentials')) {
+      return 'Email ou mot de passe incorrect';
+    }
+    if (errorMessage.includes('Email not confirmed')) {
+      return 'Veuillez confirmer votre email avant de vous connecter';
+    }
+    if (errorMessage.includes('Too many requests')) {
+      return 'Trop de tentatives de connexion. Veuillez réessayer plus tard';
+    }
+    return errorMessage;
   };
 
   return (
@@ -74,10 +118,24 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
+
+              {/* Comptes de test */}
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-medium text-blue-800 mb-2">Comptes de test disponibles :</p>
+                <div className="text-xs text-blue-700 space-y-1">
+                  <div>Admin: admin@company.com</div>
+                  <div>RH: hr@company.com</div>
+                  <div>Finance: finance@company.com</div>
+                  <div>Tuteur: marie.laurent@company.com</div>
+                  <div>Stagiaire: jean.dupont@example.com</div>
+                  <div className="font-medium">Mot de passe: password123</div>
+                </div>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">

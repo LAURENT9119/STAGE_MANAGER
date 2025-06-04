@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { MainNav } from '@/components/layout/main-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -27,7 +28,6 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,33 +55,74 @@ export default function RegisterPage() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const supabase = createClient();
+      const fullName = `${firstName} ${lastName}`;
+
+      // Inscription
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             first_name: firstName,
             last_name: lastName,
+            full_name: fullName,
             role: role,
           },
         },
       });
 
-      if (error) throw error;
+      if (authError) {
+        console.error('Erreur d\'inscription:', authError);
+        throw new Error(getErrorMessage(authError.message));
+      }
 
-      if (data.user) {
-        setSuccess('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
+      if (authData.user) {
+        console.log('Utilisateur créé:', authData.user.id);
         
-        // Redirection après 3 secondes
+        // Créer le profil utilisateur
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              email: authData.user.email,
+              full_name: fullName,
+              role: role,
+            },
+          ]);
+
+        if (profileError) {
+          console.error('Erreur création profil:', profileError);
+          // Continuer même si le profil n'est pas créé, il sera créé au login
+        }
+
+        setSuccess('Compte créé avec succès ! Redirection vers la page de connexion...');
+        
+        // Redirection après 2 secondes
         setTimeout(() => {
           router.push('/auth/login');
-        }, 3000);
+        }, 2000);
       }
     } catch (error: any) {
-      setError(error.message || 'Une erreur est survenue');
+      console.error('Erreur d\'inscription:', error);
+      setError(error.message || 'Une erreur est survenue lors de la création du compte');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getErrorMessage = (errorMessage: string) => {
+    if (errorMessage.includes('User already registered')) {
+      return 'Un compte existe déjà avec cette adresse email';
+    }
+    if (errorMessage.includes('Password should be at least')) {
+      return 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    if (errorMessage.includes('Invalid email')) {
+      return 'Adresse email invalide';
+    }
+    return errorMessage;
   };
 
   return (
@@ -103,15 +144,17 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               
               {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-                  {success}
-                </div>
+                <Alert className="mb-4 border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700">{success}</AlertDescription>
+                </Alert>
               )}
               
               <form onSubmit={handleSubmit} className="space-y-4">
