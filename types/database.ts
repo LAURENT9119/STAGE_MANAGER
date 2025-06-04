@@ -2,7 +2,7 @@
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      users: {
         Row: {
           id: string;
           email: string;

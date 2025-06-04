@@ -120,7 +120,7 @@ export class AuthService {
   static async updateProfile(userId: string, updates: Partial<UserProfile>) {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           ...updates,
           updated_at: new Date().toISOString(),

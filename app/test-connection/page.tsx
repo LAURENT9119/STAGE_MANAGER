@@ -82,16 +82,16 @@ export default function TestConnectionPage() {
         }
       }
 
-      // Test 3: Table profiles
+      // Test 3: Table users
       try {
-        const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+        const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
         if (error) {
-          updateTest(2, 'error', `Erreur table profiles: ${error.message}`);
+          updateTest(2, 'error', `Erreur table users: ${error.message}`);
         } else {
-          updateTest(2, 'success', `Table profiles accessible`);
+          updateTest(2, 'success', `Table users accessible`);
         }
       } catch (error: any) {
-        updateTest(2, 'error', `Erreur table profiles: ${error.message}`);
+        updateTest(2, 'error', `Erreur table users: ${error.message}`);
       }
 
       // Test 4: Table requests

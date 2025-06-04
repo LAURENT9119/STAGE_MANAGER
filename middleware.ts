@@ -40,7 +40,7 @@ export async function middleware(req: NextRequest) {
     if (isAuthRoute && session) {
       // Récupérer le rôle utilisateur
       try {
-        const { data: profile } = await supabase
+        const { data: user } = await supabase
           .from('users')
           .select('role')
           .eq('id', session.user.id)
