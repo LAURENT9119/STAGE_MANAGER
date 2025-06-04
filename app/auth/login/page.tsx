@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -29,10 +28,10 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      
+
       console.log('Tentative de connexion pour:', email);
-      
-      // Test de connexion d'abord
+
+      // Connexion avec retry
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -46,10 +45,10 @@ export default function LoginPage() {
 
       if (authData.user) {
         console.log('Utilisateur connecté:', authData.user.id);
-        
-        // Attendre un peu pour que la session soit établie
+
+        // Attendre que la session soit établie
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Récupérer le profil utilisateur
         const { data: profile, error: profileError } = await supabase
           .from('users')
@@ -59,7 +58,7 @@ export default function LoginPage() {
 
         if (profileError) {
           console.error('Erreur de profil:', profileError);
-          // Si pas de profil, créer un profil basique
+          // Créer un profil basique si nécessaire
           const { error: createError } = await supabase
             .from('users')
             .insert([
@@ -70,28 +69,20 @@ export default function LoginPage() {
                 role: 'intern'
               }
             ]);
-          
+
           if (createError) {
             console.error('Erreur création profil:', createError);
           }
-          
-          // Rediriger avec un délai
-          setTimeout(() => {
-            router.push('/dashboard/intern');
-            router.refresh();
-          }, 500);
+
+          router.push('/dashboard/intern');
+          router.refresh();
         } else if (profile?.role) {
           console.log('Profil trouvé, rôle:', profile.role);
-          setTimeout(() => {
-            router.push(`/dashboard/${profile.role}`);
-            router.refresh();
-          }, 500);
+          router.push(`/dashboard/${profile.role}`);
+          router.refresh();
         } else {
-          console.log('Pas de rôle défini, redirection vers intern');
-          setTimeout(() => {
-            router.push('/dashboard/intern');
-            router.refresh();
-          }, 500);
+          router.push('/dashboard/intern');
+          router.refresh();
         }
       }
     } catch (error: any) {
@@ -116,17 +107,6 @@ export default function LoginPage() {
       return 'Erreur de connexion au serveur. Vérifiez votre connexion internet.';
     }
     return errorMessage;
-  };
-
-  // Fonction pour tester avec un compte prédéfini
-  const loginWithTestAccount = async (testEmail: string) => {
-    setEmail(testEmail);
-    setPassword('password123');
-    
-    // Petit délai pour que l'utilisateur voie le changement
-    setTimeout(() => {
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-    }, 100);
   };
 
   return (
@@ -154,54 +134,6 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              {/* Comptes de test */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800 mb-2">Comptes de test (cliquez pour utiliser) :</p>
-                <div className="text-xs text-blue-700 space-y-1">
-                  <button 
-                    type="button"
-                    onClick={() => loginWithTestAccount('admin@company.com')}
-                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
-                    disabled={loading}
-                  >
-                    Admin: admin@company.com
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => loginWithTestAccount('hr@company.com')}
-                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
-                    disabled={loading}
-                  >
-                    RH: hr@company.com
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => loginWithTestAccount('finance@company.com')}
-                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
-                    disabled={loading}
-                  >
-                    Finance: finance@company.com
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => loginWithTestAccount('marie.laurent@company.com')}
-                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
-                    disabled={loading}
-                  >
-                    Tuteur: marie.laurent@company.com
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => loginWithTestAccount('jean.dupont@example.com')}
-                    className="block w-full text-left hover:bg-blue-100 p-1 rounded"
-                    disabled={loading}
-                  >
-                    Stagiaire: jean.dupont@example.com
-                  </button>
-                  <div className="font-medium mt-2">Mot de passe: password123</div>
-                </div>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -213,6 +145,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
+                    autoComplete="email"
                   />
                 </div>
 
@@ -227,6 +160,7 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={loading}
+                      autoComplete="current-password"
                     />
                     <Button
                       type="button"

@@ -13,5 +13,23 @@ export const createClient = () => {
     throw new Error('Variables d\'environnement Supabase manquantes');
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    },
+    global: {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      }
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2
+      }
+    }
+  });
 };

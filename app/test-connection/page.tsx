@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { MainNav } from '@/components/layout/main-nav';
 import { SiteFooter } from '@/components/layout/site-footer';
 
@@ -31,92 +31,122 @@ export default function TestConnectionPage() {
     ));
   };
 
-  useEffect(() => {
-    const runTests = async () => {
+  const runTests = async () => {
+    // Reset tous les tests
+    setTests([
+      { name: 'Configuration Supabase', status: 'loading', message: 'Vérification...' },
+      { name: 'Connexion à la base de données', status: 'loading', message: 'Test en cours...' },
+      { name: 'Table users', status: 'loading', message: 'Vérification...' },
+      { name: 'Table requests', status: 'loading', message: 'Vérification...' },
+      { name: 'Authentication', status: 'loading', message: 'Test en cours...' },
+    ]);
+
+    try {
+      // Test 1: Configuration Supabase
       try {
-        const supabase = createClient();
-
-        // Test 1: Configuration Supabase
-        try {
-          const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-          const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-          
-          if (!url || !key) {
-            updateTest(0, 'error', 'Variables d\'environnement manquantes');
-          } else {
-            updateTest(0, 'success', `URL: ${url.substring(0, 30)}...`);
-          }
-        } catch (error) {
-          updateTest(0, 'error', 'Erreur de configuration');
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (!url || !key) {
+          updateTest(0, 'error', 'Variables d\'environnement manquantes');
+          return;
+        } else {
+          updateTest(0, 'success', `Configuration OK`);
         }
+      } catch (error) {
+        updateTest(0, 'error', 'Erreur de configuration');
+        return;
+      }
 
-        // Test 2: Connexion à la base de données
-        try {
-          const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
-          
-          if (error) {
-            updateTest(1, 'error', `Erreur DB: ${error.message}`);
-          } else {
-            updateTest(1, 'success', 'Connexion établie');
-          }
-        } catch (error: any) {
+      const supabase = createClient();
+
+      // Test 2: Connexion basique
+      try {
+        // Test simple avec une requête basic
+        const { data, error } = await Promise.race([
+          supabase.from('users').select('count', { count: 'exact', head: true }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+        ]) as any;
+        
+        if (error) {
+          updateTest(1, 'error', `Erreur DB: ${error.message}`);
+        } else {
+          updateTest(1, 'success', 'Connexion établie');
+        }
+      } catch (error: any) {
+        if (error.message === 'Timeout') {
+          updateTest(1, 'error', 'Timeout de connexion (>10s)');
+        } else {
           updateTest(1, 'error', `Erreur de connexion: ${error.message}`);
         }
-
-        // Test 3: Table users
-        try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('id, email, role')
-            .limit(1);
-          
-          if (error) {
-            updateTest(2, 'error', `Erreur table users: ${error.message}`);
-          } else {
-            updateTest(2, 'success', `Table accessible (${data?.length || 0} résultats)`);
-          }
-        } catch (error: any) {
-          updateTest(2, 'error', `Erreur: ${error.message}`);
-        }
-
-        // Test 4: Table requests
-        try {
-          const { data, error } = await supabase
-            .from('requests')
-            .select('id, title, status')
-            .limit(1);
-          
-          if (error) {
-            updateTest(3, 'error', `Erreur table requests: ${error.message}`);
-          } else {
-            updateTest(3, 'success', `Table accessible (${data?.length || 0} résultats)`);
-          }
-        } catch (error: any) {
-          updateTest(3, 'error', `Erreur: ${error.message}`);
-        }
-
-        // Test 5: Authentication
-        try {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            updateTest(4, 'error', `Erreur auth: ${error.message}`);
-          } else {
-            if (session) {
-              updateTest(4, 'success', `Utilisateur connecté: ${session.user.email}`);
-            } else {
-              updateTest(4, 'success', 'Système d\'authentification prêt');
-            }
-          }
-        } catch (error: any) {
-          updateTest(4, 'error', `Erreur: ${error.message}`);
-        }
-
-      } catch (error: any) {
-        console.error('Erreur générale:', error);
       }
-    };
 
+      // Test 3: Table users
+      try {
+        const { data, error } = await Promise.race([
+          supabase.from('users').select('id, email, role').limit(1),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]) as any;
+        
+        if (error) {
+          updateTest(2, 'error', `Table users: ${error.message}`);
+        } else {
+          updateTest(2, 'success', `Table accessible (${data?.length || 0} résultats)`);
+        }
+      } catch (error: any) {
+        updateTest(2, 'error', `Erreur: ${error.message}`);
+      }
+
+      // Test 4: Table requests
+      try {
+        const { data, error } = await Promise.race([
+          supabase.from('requests').select('id, title, status').limit(1),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]) as any;
+        
+        if (error) {
+          updateTest(3, 'error', `Table requests: ${error.message}`);
+        } else {
+          updateTest(3, 'success', `Table accessible (${data?.length || 0} résultats)`);
+        }
+      } catch (error: any) {
+        updateTest(3, 'error', `Erreur: ${error.message}`);
+      }
+
+      // Test 5: Authentication
+      try {
+        const { data: { session }, error } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]) as any;
+        
+        if (error) {
+          updateTest(4, 'error', `Erreur auth: ${error.message}`);
+        } else {
+          if (session) {
+            updateTest(4, 'success', `Utilisateur connecté: ${session.user.email}`);
+          } else {
+            updateTest(4, 'success', 'Auth configuré (pas connecté)');
+          }
+        }
+      } catch (error: any) {
+        updateTest(4, 'error', `Erreur: ${error.message}`);
+      }
+
+    } catch (error: any) {
+      console.error('Erreur générale:', error);
+    }
+  };
+
+  useEffect(() => {
     runTests();
   }, []);
 
@@ -152,13 +182,20 @@ export default function TestConnectionPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex justify-center mb-4">
+                <Button onClick={runTests} variant="outline" size="sm">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Relancer les tests
+                </Button>
+              </div>
+
               {tests.map((test, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center space-x-3">
                     {getStatusIcon(test.status)}
                     <span className="font-medium">{test.name}</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">{test.message}</span>
+                  <span className="text-sm text-muted-foreground max-w-xs truncate">{test.message}</span>
                 </div>
               ))}
 
@@ -172,7 +209,7 @@ export default function TestConnectionPage() {
                   ) : (
                     <div className="text-red-700 bg-red-50 p-3 rounded">
                       <p className="font-medium">❌ Certains tests ont échoué</p>
-                      <p className="text-sm mt-1">Vérifiez votre configuration Supabase et vos variables d'environnement.</p>
+                      <p className="text-sm mt-1">Vérifiez votre configuration Supabase et votre connexion réseau.</p>
                     </div>
                   )}
                 </div>
@@ -196,10 +233,11 @@ export default function TestConnectionPage() {
               </div>
 
               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800 mb-2">Variables d'environnement requises :</p>
+                <p className="text-sm font-medium text-blue-800 mb-2">Configuration actuelle :</p>
                 <div className="text-xs text-blue-700 space-y-1">
-                  <div>NEXT_PUBLIC_SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Définie' : '❌ Manquante'}</div>
-                  <div>NEXT_PUBLIC_SUPABASE_ANON_KEY: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Définie' : '❌ Manquante'}</div>
+                  <div>URL Supabase: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Définie' : '❌ Manquante'}</div>
+                  <div>Clé Supabase: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Définie' : '❌ Manquante'}</div>
+                  <div>Environment: {process.env.NODE_ENV}</div>
                 </div>
               </div>
             </CardContent>
