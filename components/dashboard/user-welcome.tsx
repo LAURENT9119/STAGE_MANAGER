@@ -1,71 +1,55 @@
-
-"use client";
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ExtendedUser } from '@/types/auth';
+import { UserProfile } from '@/lib/auth-service';
 
 interface UserWelcomeProps {
-  user: ExtendedUser;
+  user: UserProfile;
 }
 
 export function UserWelcome({ user }: UserWelcomeProps) {
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Bonjour';
-    if (hour < 18) return 'Bon après-midi';
-    return 'Bonsoir';
-  };
-
-  const getInitials = (name?: string | null) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getRoleLabel = (role?: string) => {
+  const getRoleDisplayName = (role: string) => {
     switch (role) {
       case 'admin': return 'Administrateur';
       case 'hr': return 'Ressources Humaines';
-      case 'finance': return 'Finance';
       case 'tutor': return 'Tuteur';
       case 'intern': return 'Stagiaire';
-      default: return 'Utilisateur';
+      case 'finance': return 'Finance';
+      default: return role;
+    }
+  };
+
+  const getWelcomeMessage = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'Gérez l\'ensemble de la plateforme et supervisez toutes les activités.';
+      case 'hr':
+        return 'Gérez les stagiaires, validez les demandes et supervisez les processus RH.';
+      case 'tutor':
+        return 'Suivez vos stagiaires assignés et validez leurs demandes.';
+      case 'intern':
+        return 'Consultez votre progression et gérez vos demandes de stage.';
+      case 'finance':
+        return 'Gérez les aspects financiers et validez les demandes liées aux paiements.';
+      default:
+        return 'Bienvenue sur la plateforme de gestion des stages.';
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage 
-              src={user.user_metadata?.avatar_url || user.avatar || ''} 
-              alt={user.full_name || 'Avatar'} 
-            />
-            <AvatarFallback>
-              {getInitials(user.full_name)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-2xl font-bold">
-              {getGreeting()}, {user.full_name || 'Utilisateur'} !
-            </h2>
-            <p className="text-muted-foreground">
-              {getRoleLabel(user.role)}
-            </p>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">
-          Bienvenue sur votre tableau de bord. Vous pouvez gérer vos activités depuis cette interface.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="flex items-center space-x-4">
+        <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
+          <span className="text-white font-semibold text-lg">
+            {user.full_name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Bonjour, {user.full_name}
+          </h1>
+          <p className="text-gray-600">
+            {getRoleDisplayName(user.role)} - {getWelcomeMessage(user.role)}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,178 +1,96 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { AuthService, UserProfile } from '@/lib/auth-service';
 import type { User, Session } from '@supabase/supabase-js';
-import { AuthService, type UserProfile } from '@/lib/auth-service';
 
 interface AuthState {
-  user: User | null;
+  user: UserProfile | null;
   session: Session | null;
-  profile: UserProfile | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-
-  // Actions
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
-  signUp: (email: string, password: string, userData: { full_name: string; role: string }) => Promise<{ success: boolean; error?: any }>;
+  loading: boolean;
+  initialized: boolean;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setProfile: (profile: UserProfile | null) => void;
-  setLoading: (loading: boolean) => void;
   initialize: () => Promise<void>;
-  initializeAuth: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: any }>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      session: null,
-      profile: null,
-      isLoading: true,
-      isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set, get) => ({
+  user: null,
+  session: null,
+  loading: false,
+  initialized: false,
 
-      signIn: async (email: string, password: string) => {
-        set({ isLoading: true });
+  initialize: async () => {
+    try {
+      const { user: authUser, session } = await AuthService.getCurrentUser();
 
-        const { data, error } = await AuthService.signIn(email, password);
+      if (authUser && session) {
+        const profile = await AuthService.getUserProfile(authUser.id);
+        set({ user: profile, session, initialized: true });
+      } else {
+        set({ user: null, session: null, initialized: true });
+      }
 
-        if (error) {
-          set({ isLoading: false });
-          return { success: false, error };
+      // Écouter les changements d'authentification
+      AuthService.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const profile = await AuthService.getUserProfile(session.user.id);
+          set({ user: profile, session });
+        } else if (event === 'SIGNED_OUT') {
+          set({ user: null, session: null });
         }
-
-        if (data.user) {
-          const profile = await AuthService.getUserProfile(data.user.id);
-          set({
-            user: data.user,
-            session: data.session,
-            profile,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        }
-
-        return { success: true };
-      },
-
-      signUp: async (email: string, password: string, userData: { full_name: string; role: string }) => {
-        set({ isLoading: true });
-
-        const { data, error } = await AuthService.signUp(email, password, userData);
-
-        if (error) {
-          set({ isLoading: false });
-          return { success: false, error };
-        }
-
-        set({ isLoading: false });
-        return { success: true };
-      },
-
-      signOut: async () => {
-        set({ isLoading: true });
-        await AuthService.signOut();
-        set({
-          user: null,
-          session: null,
-          profile: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
-      },
-
-      setUser: (user) => {
-        set({ user, isAuthenticated: !!user });
-      },
-
-      setSession: (session) => {
-        set({ session });
-      },
-
-      setProfile: (profile) => {
-        set({ profile });
-      },
-
-      setLoading: (loading) => {
-        set({ isLoading: loading });
-      },
-
-      initialize: async () => {
-        set({ isLoading: true });
-
-        const { user, session } = await AuthService.getCurrentUser();
-
-        if (user) {
-          const profile = await AuthService.getUserProfile(user.id);
-          set({
-            user,
-            session,
-            profile,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } else {
-          set({
-            user: null,
-            session: null,
-            profile: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-        }
-      },
-
-      initializeAuth: async () => {
-        set({ isLoading: true });
-
-        const { user, session } = await AuthService.getCurrentUser();
-
-        if (user) {
-          const profile = await AuthService.getUserProfile(user.id);
-          set({
-            user,
-            session,
-            profile,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } else {
-          set({
-            user: null,
-            session: null,
-            profile: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
-        }
-      },
-
-      updateProfile: async (updates) => {
-        const { user } = get();
-        if (!user) return { success: false, error: 'No user logged in' };
-
-        const { data, error } = await AuthService.updateProfile(user.id, updates);
-
-        if (error) {
-          return { success: false, error };
-        }
-
-        if (data) {
-          set({ profile: data });
-        }
-
-        return { success: true };
-      },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        session: state.session,
-        profile: state.profile,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation de l\'auth:', error);
+      set({ user: null, session: null, initialized: true });
     }
-  )
-);
+  },
+
+  signIn: async (email: string, password: string) => {
+    set({ loading: true });
+    try {
+      const { data, error } = await AuthService.signIn(email, password);
+
+      if (error) {
+        set({ loading: false });
+        return { success: false, error: error.message };
+      }
+
+      if (data?.user && data?.session) {
+        const profile = await AuthService.getUserProfile(data.user.id);
+        set({ user: profile, session: data.session, loading: false });
+        return { success: true };
+      }
+
+      set({ loading: false });
+      return { success: false, error: 'Erreur de connexion' };
+    } catch (error: any) {
+      set({ loading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
+  signOut: async () => {
+    set({ loading: true });
+    try {
+      await AuthService.signOut();
+      set({ user: null, session: null, loading: false });
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      set({ loading: false });
+    }
+  },
+
+  updateProfile: async (updates: Partial<UserProfile>) => {
+    const { user } = get();
+    if (!user) return;
+
+    try {
+      const { data, error } = await AuthService.updateProfile(user.id, updates);
+      if (data && !error) {
+        set({ user: data });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du profil:', error);
+    }
+  },
+}));
